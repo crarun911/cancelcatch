@@ -1,0 +1,2410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<title>CancelCatch — DVSA Test Availability Alerts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0a0a0a;--ink2:#3a3a3a;--ink3:#777;--ink4:#aaa;
+  --paper:#f8f7f4;--card:#fff;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --green:#1a7a4a;--green-bg:#edf7f1;--green-bd:#b8e2ca;
+  --amber:#b87010;--amber-bg:#fef8ec;--amber-bd:#f5d78a;
+  --red:#c0392b;--red-bg:#fdf0ef;
+  --accent:#1a3f6f;--accent-light:#edf2f9;--accent-mid:#2a5fa0;
+  --gold:#c9a84c;--gold-bg:#fdf8ed;--gold-bd:#e8d090;
+  --r:12px;--rs:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(248,247,244,0.93);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px}
+.nav-brand{font-family:'DM Serif Display',serif;font-size:21px;letter-spacing:-0.02em;color:var(--ink);text-decoration:none}
+.nav-brand span{color:var(--accent)}
+.nav-tabs{display:flex;gap:3px}
+.nav-tab{padding:6px 13px;border-radius:20px;border:none;background:transparent;color:var(--ink3);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;font-weight:400}
+.nav-tab:hover{background:rgba(0,0,0,0.05);color:var(--ink)}
+.nav-tab.active{background:var(--ink);color:#fff}
+.page{display:none}.page.active{display:block}
+
+/* ── PRICING PAGE ── */
+.pricing-hero{max-width:640px;margin:0 auto;padding:4rem 1.5rem 2.5rem;text-align:center}
+.pricing-hero h1{font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,2.8rem);line-height:1.15;letter-spacing:-0.02em;margin-bottom:.8rem}
+.pricing-hero h1 em{font-style:italic;color:var(--accent)}
+.pricing-hero p{color:var(--ink3);font-size:15px;max-width:420px;margin:0 auto}
+
+.plans-wrap{max-width:820px;margin:0 auto;padding:0 1.5rem 1.5rem}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:2rem}
+
+.plan-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:1.5rem;position:relative;transition:transform .15s}
+.plan-card:hover{transform:translateY(-2px)}
+.plan-card.featured{border:2px solid var(--accent-mid);background:var(--card)}
+.plan-card.gold-plan{border:2px solid var(--gold)}
+
+.plan-ribbon{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--accent-mid);color:#fff;font-size:10px;font-weight:500;padding:3px 14px;border-radius:0 0 8px 8px;letter-spacing:.05em;white-space:nowrap}
+.plan-ribbon.gold{background:var(--gold);color:#5a3a00}
+
+.plan-name{font-size:12px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem}
+.plan-price{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1;color:var(--ink);margin-bottom:.2rem}
+.plan-price sup{font-size:1.1rem;vertical-align:super;font-family:'DM Sans',sans-serif;font-weight:400}
+.plan-price sub{font-size:.9rem;font-family:'DM Sans',sans-serif;font-weight:300;color:var(--ink3)}
+.plan-tagline{font-size:12px;color:var(--ink3);margin-bottom:1.2rem;min-height:32px;line-height:1.5}
+.plan-divider{border:none;border-top:1px solid var(--border);margin-bottom:1.1rem}
+.plan-features{list-style:none;margin-bottom:1.4rem}
+.plan-features li{font-size:13px;color:var(--ink2);padding:4px 0;display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.plan-features li::before{content:'✓';color:var(--green);font-weight:500;flex-shrink:0;margin-top:1px}
+.plan-features li.no::before{content:'✗';color:var(--ink4)}
+.plan-features li.no{color:var(--ink4)}
+
+.plan-cta{width:100%;padding:11px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:var(--paper);color:var(--ink)}
+.plan-cta:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.plan-cta.primary{background:var(--accent-mid);color:#fff;border-color:var(--accent-mid)}
+.plan-cta.primary:hover{background:var(--accent);border-color:var(--accent)}
+.plan-cta.gold-cta{background:var(--gold);color:#3a2000;border-color:var(--gold)}
+.plan-cta.gold-cta:hover{background:#b8922a;border-color:#b8922a;color:#fff}
+
+.trial-note{text-align:center;font-size:12px;color:var(--ink3);margin-bottom:2rem}
+.trial-note strong{color:var(--green)}
+
+/* ── FAQ / FEATURES ── */
+.features-section{max-width:820px;margin:0 auto;padding:0 1.5rem 4rem}
+.features-section h2{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:1.25rem;letter-spacing:-.01em}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.feat-item{padding:1rem 1.1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--rs)}
+.feat-item h4{font-size:13px;font-weight:500;margin-bottom:4px}
+.feat-item p{font-size:12px;color:var(--ink3);line-height:1.5}
+.faq{margin-top:2.5rem}
+.faq h2{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:1.25rem}
+.faq-item{border-bottom:1px solid var(--border);padding:1rem 0}
+.faq-item:last-child{border-bottom:none}
+.faq-q{font-size:14px;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.faq-q::after{content:'+';font-size:18px;color:var(--ink3);flex-shrink:0;transition:transform .2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{font-size:13px;color:var(--ink3);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s}
+.faq-item.open .faq-a{max-height:200px;padding-top:.6rem}
+
+/* ── SIGNUP PAGE ── */
+.hero{max-width:620px;margin:0 auto;padding:3.5rem 1.5rem 2rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;margin-bottom:1.4rem}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,5.5vw,2.8rem);line-height:1.15;letter-spacing:-.02em;margin-bottom:.9rem}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero p{color:var(--ink3);font-size:15px;max-width:440px;margin:0 auto 2.2rem;line-height:1.7}
+
+/* plan selector strip */
+.plan-strip{display:flex;gap:10px;max-width:560px;margin:0 auto 2rem;padding:0 1.5rem}
+.plan-strip-opt{flex:1;border:1px solid var(--border2);border-radius:var(--rs);padding:.75rem .9rem;cursor:pointer;transition:all .15s;background:var(--card);position:relative}
+.plan-strip-opt:hover{border-color:var(--accent-mid)}
+.plan-strip-opt.sel{border:2px solid var(--accent-mid);background:var(--accent-light)}
+.plan-strip-opt.sel.gold{border-color:var(--gold);background:var(--gold-bg)}
+.plan-strip-opt .ps-name{font-size:12px;font-weight:500;color:var(--ink2)}
+.plan-strip-opt .ps-price{font-size:16px;font-weight:500;color:var(--ink);line-height:1.2;margin:.1rem 0}
+.plan-strip-opt .ps-desc{font-size:11px;color:var(--ink3);line-height:1.4}
+.plan-strip-opt .ps-badge{position:absolute;top:-9px;right:8px;background:var(--accent-mid);color:#fff;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:500}
+.plan-strip-opt .ps-badge.trial{background:var(--green)}
+
+/* form */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:2rem;max-width:540px;margin:0 auto 1rem;box-shadow:0 2px 20px rgba(0,0,0,0.05)}
+.form-card h2{font-family:'DM Serif Display',serif;font-size:1.25rem;margin-bottom:1.4rem;color:var(--ink);letter-spacing:-.01em}
+.form-section{margin-bottom:1.1rem}
+.form-section label{display:block;font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.055em;margin-bottom:5px}
+.form-section input,.form-section select{width:100%;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.form-section input:focus,.form-section select:focus{border-color:var(--accent-mid);box-shadow:0 0 0 3px rgba(42,95,160,0.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+
+.notify-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.notify-opt{display:flex;align-items:center;gap:9px;border:1px solid var(--border2);border-radius:var(--rs);padding:9px 11px;cursor:pointer;transition:all .15s;user-select:none}
+.notify-opt.checked{border-color:var(--accent-mid);background:var(--accent-light)}
+.notify-opt .tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--paper)}
+.notify-opt.checked .tick{background:var(--accent-mid);border-color:var(--accent-mid)}
+.notify-opt.checked .tick::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+.notify-opt input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.notify-opt-label{font-size:13px;font-weight:500}
+.notify-opt-sub{font-size:11px;color:var(--ink3)}
+
+.centres-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.centre-tag{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid rgba(26,63,111,0.18);color:var(--accent);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500}
+.centre-tag button{background:none;border:none;cursor:pointer;color:var(--accent);font-size:14px;line-height:1;padding:0;display:flex;align-items:center}
+.add-centre-row{display:flex;gap:8px;margin-bottom:7px}
+.add-centre-row select{flex:1}
+.btn-add{background:var(--ink);color:#fff;border:none;border-radius:var(--rs);padding:10px 15px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:opacity .15s}
+.btn-add:hover{opacity:.82}
+
+/* plan summary box */
+.plan-summary{border-radius:var(--rs);padding:.85rem 1rem;margin-bottom:1.1rem;font-size:13px;display:flex;align-items:center;gap:10px}
+.plan-summary.trial{background:var(--green-bg);border:1px solid var(--green-bd);color:#1a5a35}
+.plan-summary.basic{background:var(--accent-light);border:1px solid rgba(26,63,111,0.2);color:var(--accent)}
+.plan-summary.standard{background:var(--accent-light);border:1px solid rgba(42,95,160,0.3);color:var(--accent)}
+.plan-summary.pro{background:var(--gold-bg);border:1px solid var(--gold-bd);color:#6a3e00}
+.plan-summary .ps-icon{font-size:20px;flex-shrink:0}
+.plan-summary strong{font-weight:500}
+
+/* payment fields */
+.payment-section{border:1px solid var(--border);border-radius:var(--rs);padding:1rem;margin-bottom:1rem;background:var(--paper)}
+.payment-section .pay-label{font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.055em;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+.card-row{display:flex;gap:10px}
+.card-row input{flex:1}
+.secure-note{font-size:11px;color:var(--ink4);margin-top:.5rem;display:flex;align-items:center;gap:4px}
+
+.submit-btn{width:100%;padding:13px;background:var(--ink);color:#fff;border:none;border-radius:var(--rs);font-family:'DM Serif Display',serif;font-size:17px;cursor:pointer;transition:all .15s;margin-top:.4rem;letter-spacing:.01em}
+.submit-btn:hover{background:#222;transform:translateY(-1px)}
+.submit-btn.free{background:var(--green);color:#fff}
+.submit-btn.free:hover{background:#157a3e}
+.submit-btn.gold-btn{background:var(--gold);color:#3a2000}
+.submit-btn.gold-btn:hover{background:#b8922a;color:#fff}
+.form-note{font-size:11px;color:var(--ink3);text-align:center;margin-top:.75rem;line-height:1.6}
+
+.success-card{background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--r);padding:2rem;text-align:center;max-width:540px;margin:0 auto 2rem;display:none}
+.success-card h3{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--green);margin-bottom:.5rem}
+.success-card p{color:#2d6e47;font-size:14px;line-height:1.6}
+
+/* ── HOW IT WORKS ── */
+.how{max-width:700px;margin:0 auto;padding:1.5rem 1.5rem 4rem}
+.how h2{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:1.2rem;letter-spacing:-.01em}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.step{padding:1.1rem;border:1px solid var(--border);border-radius:var(--rs);background:var(--card)}
+.step-num{font-family:'DM Serif Display',serif;font-size:2rem;color:rgba(0,0,0,0.07);line-height:1;margin-bottom:7px}
+.step h4{font-size:13px;font-weight:500;margin-bottom:4px}
+.step p{font-size:12px;color:var(--ink3);line-height:1.5}
+
+/* ── ADMIN PAGE ── */
+.admin-wrap{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.admin-header h2{font-family:'DM Serif Display',serif;font-size:1.5rem;letter-spacing:-.01em}
+.admin-lock{display:flex;gap:8px}
+.admin-lock input{padding:8px 12px;border:1px solid var(--border2);border-radius:var(--rs);font-size:13px;background:var(--paper);color:var(--ink);outline:none;font-family:'DM Sans',sans-serif}
+.btn-sm{padding:7px 13px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--card);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--ink);transition:background .12s}
+.btn-sm:hover{background:var(--paper)}
+.btn-sm.danger{color:var(--red);border-color:rgba(192,57,43,0.25)}
+.btn-sm.danger:hover{background:var(--red-bg)}
+.btn-sm.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-sm.primary:hover{background:#222}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:11px;margin-bottom:1.5rem}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:1rem}
+.stat-box .stat-n{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--ink)}
+.stat-box .stat-l{font-size:11px;color:var(--ink3);margin-top:2px}
+.filter-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-row input,.filter-row select{padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rs);font-size:13px;background:var(--card);color:var(--ink);outline:none;font-family:'DM Sans',sans-serif}
+.filter-row input{flex:1;min-width:150px}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:10px 13px;text-align:left;font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--paper);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(0,0,0,0.015)}
+tbody td{padding:10px 13px;color:var(--ink);vertical-align:middle}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.badge-blue{background:var(--accent-light);color:var(--accent)}
+.badge-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.badge-gray{background:#f0ede8;color:#666}
+.badge-gold{background:var(--gold-bg);color:#7a4800;border:1px solid var(--gold-bd)}
+.badge-trial{background:#e8f7ee;color:#1a7a4a;border:1px solid #b8e2ca}
+.locked-overlay{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:3rem 2rem;text-align:center;margin-top:1rem}
+.locked-overlay p{color:var(--ink3);font-size:14px;margin-top:8px}
+
+/* ── BACKEND PAGE ── */
+.backend-wrap{max-width:760px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.backend-wrap h2{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:.4rem}
+.backend-wrap .subtitle{color:var(--ink3);font-size:14px;margin-bottom:2rem}
+.be-section{margin-bottom:2rem}
+.be-section h3{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:.7rem}
+.arch-step{display:flex;gap:13px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.9rem 1.1rem;margin-bottom:8px}
+.arch-num{width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.arch-step h4{font-size:13px;font-weight:500;margin-bottom:3px}
+.arch-step p{font-size:12px;color:var(--ink3);line-height:1.5}
+.arch-step code{display:inline-block;background:var(--paper);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:11px;color:var(--ink2);font-family:monospace}
+.cost-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;margin-left:5px}
+.cost-pill.free{background:var(--green-bg);color:var(--green)}
+.cost-pill.paid{background:var(--amber-bg);color:var(--amber)}
+.service-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px}
+.service-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:1rem}
+.service-card h4{font-size:13px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.service-card p{font-size:12px;color:var(--ink3);line-height:1.5}
+pre{background:#0c0c0c;color:#e0dbd0;border-radius:var(--rs);padding:1.2rem;font-size:11.5px;line-height:1.75;overflow-x:auto;font-family:'Courier New',monospace;margin:0}
+pre .c{color:#555}pre .k{color:#9fb8e8}pre .s{color:#a8d4a8}pre .f{color:#e8d4a8}
+
+/* ── ACCOUNT PAGE ── */
+.acct-wrap{max-width:680px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+.acct-wrap h2{font-family:'DM Serif Display',serif;font-size:1.5rem;letter-spacing:-.01em;margin-bottom:1.75rem}
+.acct-section{margin-bottom:1.75rem}
+.acct-section-title{font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem}
+.acct-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.acct-row{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);gap:12px}
+.acct-row:last-child{border-bottom:none}
+.acct-row-label{font-size:12px;color:var(--ink3);margin-bottom:2px}
+.acct-row-value{font-size:14px;font-weight:500;color:var(--ink)}
+.acct-row-sub{font-size:12px;color:var(--ink3);margin-top:1px}
+.acct-action{font-size:12px;color:var(--accent-mid);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;white-space:nowrap;padding:0}
+.acct-action:hover{text-decoration:underline}
+.acct-action.danger{color:var(--red)}
+
+/* current plan hero card */
+.plan-hero-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1.75rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.phc-left .phc-plan{font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+.phc-left .phc-name{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ink);letter-spacing:-.01em}
+.phc-left .phc-price{font-size:13px;color:var(--ink3);margin-top:.2rem}
+.phc-left .phc-trial-bar{margin-top:.9rem}
+.phc-left .phc-trial-label{font-size:12px;color:var(--amber);margin-bottom:5px;font-weight:500}
+.trial-track{height:6px;background:var(--amber-bg);border-radius:99px;overflow:hidden;border:1px solid var(--amber-bd);width:200px}
+.trial-fill{height:100%;background:var(--amber);border-radius:99px;transition:width .3s}
+.phc-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+
+/* upgrade grid */
+.upgrade-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.upgrade-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--rs);padding:1rem;position:relative;transition:border-color .15s,transform .15s;cursor:pointer}
+.upgrade-card:hover{border-color:var(--accent-mid);transform:translateY(-1px)}
+.upgrade-card.current-plan{border:2px solid var(--green);cursor:default}
+.upgrade-card.current-plan:hover{transform:none}
+.upgrade-card.recommended{border:2px solid var(--accent-mid)}
+.upgrade-card .uc-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:.5rem}
+.uc-badge.current{background:var(--green-bg);color:var(--green)}
+.uc-badge.popular{background:var(--accent-light);color:var(--accent)}
+.uc-badge.best{background:var(--gold-bg);color:#7a4800}
+.upgrade-card .uc-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:.15rem}
+.upgrade-card .uc-price{font-size:1.3rem;font-weight:500;color:var(--ink);line-height:1.2}
+.upgrade-card .uc-price span{font-size:11px;font-weight:400;color:var(--ink3)}
+.upgrade-card .uc-features{font-size:11px;color:var(--ink3);margin-top:.4rem;line-height:1.6}
+.upgrade-card .uc-btn{width:100%;margin-top:.75rem;padding:8px;border-radius:var(--rs);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border2);background:var(--paper);color:var(--ink);transition:all .15s}
+.upgrade-card .uc-btn:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.upgrade-card .uc-btn.primary{background:var(--accent-mid);color:#fff;border-color:var(--accent-mid)}
+.upgrade-card .uc-btn.primary:hover{background:var(--accent)}
+.upgrade-card .uc-btn.gold{background:var(--gold);color:#3a2000;border-color:var(--gold)}
+.upgrade-card .uc-btn.gold:hover{background:#b8922a;color:#fff}
+.upgrade-card .uc-btn.disabled{opacity:.45;cursor:default;pointer-events:none}
+
+/* login gate */
+.acct-login{max-width:420px;margin:3rem auto;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:2rem;text-align:center}
+.acct-login h3{font-family:'DM Serif Display',serif;font-size:1.3rem;margin-bottom:.5rem}
+.acct-login p{font-size:13px;color:var(--ink3);margin-bottom:1.25rem}
+.acct-login input{width:100%;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:10px;background:var(--paper);color:var(--ink)}
+.acct-login input:focus{border-color:var(--accent-mid)}
+.acct-login button{width:100%;padding:11px;background:var(--ink);color:#fff;border:none;border-radius:var(--rs);font-family:'DM Serif Display',serif;font-size:16px;cursor:pointer}
+
+/* modal overlay */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:var(--r);padding:1.75rem;max-width:440px;width:90%;border:1px solid var(--border)}
+.modal h3{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:.5rem}
+.modal p{font-size:13px;color:var(--ink3);margin-bottom:1.25rem;line-height:1.6}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal .form-section{margin-bottom:.9rem}
+.modal .form-section label{display:block;font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.modal .form-section input{width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);outline:none}
+.modal .form-section input:focus{border-color:var(--accent-mid)}
+.notify-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0a0a0a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:600;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.notify-toast.show{opacity:1}
+
+@media(max-width:600px){
+  .form-card{padding:1.25rem}
+  .hero{padding:2.5rem 1rem 1.5rem}
+  .notify-opts{grid-template-columns:1fr}
+  .plan-strip{flex-direction:column;padding:0 1.5rem}
+  .plan-strip-opt{padding:.65rem .85rem}
+  .nav-tabs .nav-tab:not(.active){display:none}
+  .phc-right{align-items:flex-start}
+  .upgrade-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ── AUTOCOMPLETE ── */
+.ac-wrap { position: relative; }
+.ac-input-row { display: flex; gap: 8px; margin-bottom: 7px; }
+.ac-input-row input { flex: 1; }
+.ac-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: var(--rs); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 300; max-height: 260px; overflow-y: auto;
+  margin-top: 2px; display: none;
+}
+.ac-dropdown.open { display: block; }
+.ac-group-label {
+  font-size: 10px; font-weight: 500; color: var(--ink3);
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 12px 4px; background: var(--paper);
+  position: sticky; top: 0;
+}
+.ac-item {
+  padding: 9px 12px; font-size: 13px; color: var(--ink);
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  transition: background .1s;
+}
+.ac-item:hover, .ac-item.highlighted { background: var(--accent-light); }
+.ac-item .ac-region { font-size: 11px; color: var(--ink3); }
+.ac-item mark { background: none; color: var(--accent-mid); font-weight: 600; }
+.ac-empty { padding: 12px; font-size: 13px; color: var(--ink3); text-align: center; }
+
+/* ── PRIVACY POLICY PAGE ── */
+.privacy-wrap{max-width:720px;margin:0 auto;padding:2.5rem 1.5rem 5rem}
+.privacy-wrap h1{font-family:'DM Serif Display',serif;font-size:2rem;letter-spacing:-.02em;margin-bottom:.4rem}
+.privacy-wrap .updated{font-size:12px;color:var(--ink3);margin-bottom:2.5rem}
+.privacy-wrap h2{font-family:'DM Serif Display',serif;font-size:1.2rem;margin:2rem 0 .6rem;letter-spacing:-.01em}
+.privacy-wrap p{font-size:14px;color:var(--ink2);line-height:1.8;margin-bottom:.9rem}
+.privacy-wrap ul{font-size:14px;color:var(--ink2);line-height:1.8;margin-bottom:.9rem;padding-left:1.4rem}
+.privacy-wrap ul li{margin-bottom:.3rem}
+.privacy-wrap a{color:var(--accent-mid);text-decoration:none}
+.privacy-wrap a:hover{text-decoration:underline}
+.privacy-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1rem}
+.privacy-table th{text-align:left;padding:8px 12px;background:var(--paper);border:1px solid var(--border);font-weight:500;color:var(--ink2)}
+.privacy-table td{padding:8px 12px;border:1px solid var(--border);color:var(--ink2);vertical-align:top;line-height:1.6}
+/* ── FOOTER ── */
+.site-footer{background:var(--ink);color:#fff;padding:2rem 1.5rem;margin-top:4rem}
+.footer-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-brand{font-family:'DM Serif Display',serif;font-size:18px;letter-spacing:-.01em}
+.footer-brand span{color:#9fb8e8}
+.footer-links{display:flex;gap:1.5rem;flex-wrap:wrap}
+.footer-links a{font-size:12px;color:rgba(255,255,255,0.6);text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:#fff}
+.footer-copy{font-size:11px;color:rgba(255,255,255,0.35);margin-top:.5rem;width:100%}
+/* ── CONSENT CHECKBOX ── */
+.consent-block{background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--rs);padding:.9rem 1rem;margin-bottom:1rem}
+.consent-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}
+.consent-row input{margin-top:3px;accent-color:var(--accent-mid);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.consent-row span{font-size:12px;color:var(--ink2);line-height:1.6}
+.consent-row a{color:var(--accent-mid);text-decoration:none}
+.consent-row a:hover{text-decoration:underline}
+.consent-error{font-size:11px;color:var(--red);margin-top:5px;display:none}
+
+/* ── STATS BAR ── */
+.stats-bar{display:flex;align-items:center;justify-content:center;gap:2rem;flex-wrap:wrap;max-width:560px;margin:0 auto 2.5rem;padding:.9rem 1.25rem;background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+.stat-pill{display:flex;align-items:center;gap:8px}
+.stat-pill .sp-icon{font-size:18px;line-height:1}
+.stat-pill .sp-val{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--ink);letter-spacing:-.01em;line-height:1}
+.stat-pill .sp-label{font-size:11px;color:var(--ink3);line-height:1.3}
+.stat-divider{width:1px;height:32px;background:var(--border);flex-shrink:0}
+@media(max-width:480px){.stat-divider{display:none}.stats-bar{gap:1rem}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#"><span>Cancel</span>Catch</a>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('signup',this)">Sign up</button>
+    <button class="nav-tab" id="acct-nav-tab" onclick="showPage('account',this)">Log in</button>
+    <button class="nav-tab" onclick="showPage('pricing',this)">Pricing</button>
+    <button class="nav-tab" onclick="showPage('compliance',this)">DVSA Rules</button>
+    <button class="nav-tab" onclick="showPage('privacy',this)">Privacy</button>
+  </div>
+</nav>
+
+<!-- DVSA Compliance Banner -->
+<div id="compliance-banner" style="background:#1a3f6f;color:#fff;padding:10px 1.5rem;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <span style="display:flex;align-items:center;gap:8px">
+    <span style="background:rgba(255,255,255,0.15);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:500;letter-spacing:.05em">DVSA SI 2026/326</span>
+    <span>We monitor availability 24/7 and send you a direct link — <strong>you always book yourself on gov.uk</strong>. Fully compliant with the May 2026 DVSA rules.</span>
+  </span>
+  <a href="#" onclick="showPage('compliance',document.querySelectorAll('.nav-tab')[3]);return false;" style="color:#9fb8e8;font-size:11px;white-space:nowrap;text-decoration:none">How we comply →</a>
+</div>
+
+<!-- ══════════════════════════════════════
+     PRICING PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-pricing">
+  <div class="pricing-hero">
+    <h1>Simple, honest<br><em>pricing</em></h1>
+    <p>Start free for 7 days. No card required. Upgrade only when you're convinced it works.</p>
+  </div>
+
+  <div class="plans-wrap">
+    <div class="plans-grid">
+
+      <!-- FREE TRIAL -->
+      <div class="plan-card">
+        <div class="plan-name">Free trial</div>
+        <div class="plan-price"><sup>£</sup>0<sub>/7 days</sub></div>
+        <div class="plan-tagline">Try before you commit. No card needed.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>Email alerts only</li>
+          <li>Up to 2 test centres</li>
+          <li>24/7 availability checks</li>
+          <li class="no">WhatsApp notifications</li>
+          <li class="no">Priority checking</li>
+        </ul>
+        <button class="plan-cta" onclick="selectPlanAndGo('trial')">Start free trial →</button>
+      </div>
+
+      <!-- BASIC -->
+      <div class="plan-card">
+        <div class="plan-name">Basic</div>
+        <div class="plan-price"><sup>£</sup>1.99<sub>/mo</sub></div>
+        <div class="plan-tagline">For learners who check their email regularly.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>Email alerts</li>
+          <li>Up to 3 test centres</li>
+          <li>24/7 availability checks</li>
+          <li>Preferred time of day</li>
+          <li>Cancel any time</li>
+          <li class="no">WhatsApp notifications</li>
+          <li class="no">Priority checking</li>
+        </ul>
+        <button class="plan-cta" onclick="selectPlanAndGo('basic')">Get Basic →</button>
+      </div>
+
+      <!-- STANDARD (featured) -->
+      <div class="plan-card featured">
+        <div class="plan-ribbon">Most popular</div>
+        <div class="plan-name">Standard</div>
+        <div class="plan-price"><sup>£</sup>3.99<sub>/mo</sub></div>
+        <div class="plan-tagline">Fastest alerts. Best chance of grabbing a slot.</div>
+        <hr class="plan-divider">
+        <ul class="plan-features">
+          <li>Email + WhatsApp alerts</li>
+          <li>Up to 3 test centres</li>
+          <li>24/7 checks</li>
+          <li>Preferred time of day</li>
+          <li>Cancel any time</li>
+          <li>Priority checking</li>
+        </ul>
+        <button class="plan-cta primary" onclick="selectPlanAndGo('standard')">Get Standard →</button>
+      </div>
+
+
+
+    </div>
+
+    <p class="trial-note"><strong>All paid plans include a 7-day free trial.</strong> Full refund any time before your first alert is sent. Once your first alert reaches you, the service is fulfilled. <a href="#" onclick="showPage('privacy',document.querySelectorAll('.nav-tab')[2]);return false;" style="color:var(--accent-mid)">Refund policy →</a></p>
+
+    <div class="features-section" style="padding:0 0 2rem">
+      <h2>Why CancelCatch?</h2>
+      <div class="feat-grid">
+        <div class="feat-item"><h4>24/7 checks</h4><p>We monitor DVSA availability 24/7 so you hear about slots before they're gone.</p></div>
+        <div class="feat-item"><h4>WhatsApp + email</h4><p>WhatsApp messages land on your lock screen instantly. Email as a backup.</p></div>
+        <div class="feat-item"><h4>Smart matching</h4><p>Set your date range and time preferences. We only alert when it's actually useful.</p></div>
+        <div class="feat-item"><h4>Cancel any time</h4><p>No contracts, no hidden fees. One click to unsubscribe from your account page.</p></div>
+      </div>
+
+      <div class="faq">
+        <h2>Common questions</h2>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Do I need to give card details for the free trial?</div><div class="faq-a">No. The free 7-day trial is completely card-free. You only enter payment details when you choose to upgrade to a paid plan.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">How does WhatsApp notification work?</div><div class="faq-a">You'll receive a WhatsApp message from our business number when a slot matches your criteria. You need to send us a message first to opt in — we'll give you a simple link to do that during signup.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What happens when I find a slot?</div><div class="faq-a">Your alert includes a direct link to the DVSA booking page with the centre pre-selected. You still need a valid theory test pass and licence number to complete the booking.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Can I change my plan later?</div><div class="faq-a">Yes — upgrade or downgrade any time from your account settings. Changes take effect immediately and billing is prorated.</div></div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SIGNUP PAGE
+══════════════════════════════════════ -->
+<div class="page active" id="page-signup">
+  <div class="hero">
+    <div class="hero-badge">Checking 24/7 for cancellations</div>
+    <h1>Catch your <em>DVSA test cancellation</em><br>before anyone else</h1>
+    <p>Choose your plan below, then fill in your preferences. We'll watch your centres and alert you the moment a slot appears.</p>
+
+  <div class="stats-bar" id="hero-stats-bar">
+    <div class="stat-pill">
+      <span class="sp-icon">👥</span>
+      <div>
+        <div class="sp-val" id="stat-signups">—</div>
+        <div class="sp-label">people signed up</div>
+      </div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-pill">
+      <span class="sp-icon">✅</span>
+      <div>
+        <div class="sp-val" id="stat-slots">—</div>
+        <div class="sp-label">slots found this week</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Plan selector strip -->
+  <div class="plan-strip" id="plan-strip">
+    <div class="plan-strip-opt sel" id="pso-trial" onclick="selectPlan('trial')">
+      <div class="ps-badge trial">Free</div>
+      <div class="ps-name">Trial</div>
+      <div class="ps-price">£0</div>
+      <div class="ps-desc">7 days · email + save WA</div>
+    </div>
+    <div class="plan-strip-opt" id="pso-basic" onclick="selectPlan('basic')">
+      <div class="ps-name">Basic</div>
+      <div class="ps-price">£1.99<span style="font-size:11px;font-weight:400;color:var(--ink3)">/mo</span></div>
+      <div class="ps-desc">Email · save WA number</div>
+    </div>
+    <div class="plan-strip-opt" id="pso-standard" onclick="selectPlan('standard')">
+      <div class="ps-badge">Popular</div>
+      <div class="ps-name">Standard</div>
+      <div class="ps-price">£3.99<span style="font-size:11px;font-weight:400;color:var(--ink3)">/mo</span></div>
+      <div class="ps-desc">Email + WhatsApp</div>
+    </div>
+
+  </div>
+
+  <div class="form-card" id="signup-form-wrap">
+    <h2>Your details</h2>
+
+    <!-- Plan summary -->
+    <div class="plan-summary trial" id="plan-summary-box">
+      <span class="ps-icon">🎁</span>
+      <span><strong>7-day free trial</strong> — email alerts, up to 2 centres. No card needed.</span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-section"><label>First name</label><input type="text" id="fname" placeholder="Jane" autocomplete="given-name"></div>
+      <div class="form-section"><label>Last name</label><input type="text" id="lname" placeholder="Smith" autocomplete="family-name"></div>
+    </div>
+
+    <div class="form-section"><label>Email address</label><input type="email" id="email" placeholder="jane@example.com" autocomplete="email"></div>
+    <div class="form-section">
+      <label>Password</label>
+      <div style="position:relative">
+        <input type="password" id="password" placeholder="Min. 8 characters" autocomplete="new-password" style="padding-right:40px">
+        <button onclick="togglePwVis('password','signup-pw-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:16px;padding:0" id="signup-pw-eye" title="Show/hide password" type="button">👁</button>
+      </div>
+    </div>
+    <div class="form-section">
+      <label>Confirm password</label>
+      <div style="position:relative">
+        <input type="password" id="password-confirm" placeholder="Repeat your password" autocomplete="new-password" style="padding-right:40px">
+        <button onclick="togglePwVis('password-confirm','signup-pw2-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:16px;padding:0" id="signup-pw2-eye" title="Show/hide password" type="button">👁</button>
+      </div>
+    </div>
+
+    <div class="form-section" id="wa-field">
+      <label>WhatsApp number</label>
+      <input type="tel" id="whatsapp" placeholder="+44 7700 900000" autocomplete="tel" value="+44 ">
+      <p id="wa-plan-note" style="font-size:11px;color:var(--amber);margin-top:5px;display:block">WhatsApp alerts are available on Standard and above. <a href="#" onclick="selectPlan('standard');return false;" style="color:var(--accent-mid);font-weight:500">Upgrade →</a></p>
+    </div>
+
+    <div class="form-section" id="notif-field">
+      <label>Notifications</label>
+      <div class="notify-opts">
+        <label class="notify-opt"><input type="checkbox" id="notif-email" checked><div class="tick"></div><div><div class="notify-opt-label">📧 Email</div><div class="notify-opt-sub">All plans</div></div></label>
+        <label class="notify-opt" id="wa-opt"><input type="checkbox" id="notif-wa"><div class="tick"></div><div><div class="notify-opt-label">💬 WhatsApp</div><div class="notify-opt-sub">All plans</div></div></label>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label>Preferred test centres</label>
+      <div class="ac-wrap">
+        <div class="ac-input-row">
+          <input type="text" id="centre-search" placeholder="Search test centres, e.g. Manchester, Reading…" autocomplete="off" oninput="acSearch(this.value)" onfocus="acSearch(this.value)" onkeydown="acKeydown(event)">
+        </div>
+        <div class="ac-dropdown" id="ac-dropdown"></div>
+      </div>
+      <div class="centres-list" id="centres-list">
+        <span style="font-size:12px;color:var(--ink4)" id="no-centres-hint">No centres added yet</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-section"><label>Test from <span style="font-weight:400;color:var(--ink4)">(earliest you can take it)</span></label><input type="date" id="date-from"></div>
+      <div class="form-section"><label>Test by <span style="font-weight:400;color:var(--ink4)">(last date you'd accept)</span></label><input type="date" id="date-to"></div>
+    </div>
+
+    <div class="form-section">
+      <label>Preferred time of day</label>
+      <select id="time-pref">
+        <option value="any">Any time</option>
+        <option value="morning">Morning (before 12pm)</option>
+        <option value="afternoon">Afternoon (12–5pm)</option>
+        <option value="evening">Evening (after 5pm)</option>
+      </select>
+    </div>
+
+    <!-- Payment fields (hidden for trial) -->
+    <div id="payment-block" style="display:none">
+      <div class="payment-section">
+        <div class="pay-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Payment details
+        </div>
+        <div class="form-section" style="margin-bottom:.75rem"><label>Name on card</label><input type="text" id="card-name" placeholder="Jane Smith" autocomplete="cc-name"></div>
+        <div class="form-section" style="margin-bottom:.75rem"><label>Card number</label><input type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)" autocomplete="cc-number"></div>
+        <div class="card-row">
+          <div class="form-section" style="margin-bottom:0"><label>Expiry</label><input type="text" id="card-exp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)" autocomplete="cc-exp"></div>
+          <div class="form-section" style="margin-bottom:0"><label>CVC</label><input type="text" id="card-cvc" placeholder="123" maxlength="4" autocomplete="cc-csc"></div>
+        </div>
+        <div class="secure-note">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Secured by Stripe · 7-day free trial · cancel anytime · <a href="#" onclick="showPage('privacy',document.querySelectorAll('.nav-tab')[2]);return false;" style="color:var(--accent-mid)">refund policy</a>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="consent-block">
+      <label class="consent-row">
+        <input type="checkbox" id="consent-whatsapp">
+        <span>I agree that CancelCatch may store and use my WhatsApp number solely to send me DVSA test slot alerts. I can withdraw this consent at any time from my account page. See our <a href="#" onclick="showPage('privacy',document.querySelectorAll('.nav-tab')[2]);return false;">Privacy Policy</a>.</span>
+      </label>
+      <div class="consent-error" id="consent-error">You must agree to store your WhatsApp number to receive WhatsApp alerts.</div>
+    </div>
+    <label class="consent-row" style="margin-bottom:1rem;gap:10px;display:flex;align-items:flex-start;cursor:pointer;user-select:none">
+      <input type="checkbox" id="consent-terms" style="margin-top:3px;accent-color:var(--accent-mid);width:15px;height:15px;flex-shrink:0;cursor:pointer">
+      <span style="font-size:12px;color:var(--ink2);line-height:1.6">I agree to the <a href="#" onclick="showPage('privacy',document.querySelectorAll('.nav-tab')[2]);return false;" style="color:var(--accent-mid)">Terms & Privacy Policy</a> and confirm I am 17 or over.</span>
+    </label>
+<button class="submit-btn free" id="submit-btn" onclick="submitForm()">Start free trial →</button>
+    <p class="form-note" id="form-note">No card required. Full refund before your first alert. Trial lasts 7 days.</p>
+  </div>
+
+  <div class="success-card" id="success-card">
+    <div style="font-size:2rem;margin-bottom:.5rem">✓</div>
+    <h3>You're all set!</h3>
+    <p id="success-msg"></p>
+    <button onclick="goToAccount()" style="margin-top:1rem;padding:9px 22px;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer">Manage my account →</button>
+  </div>
+
+  <div class="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><h4>Register</h4><p>Tell us your preferred centres, dates, and time.</p></div>
+      <div class="step"><div class="step-num">02</div><h4>We watch</h4><p>Our backend monitors DVSA availability 24/7, automatically.</p></div>
+      <div class="step"><div class="step-num">03</div><h4>Slot found</h4><p>You get an instant WhatsApp or email the moment one appears.</p></div>
+      <div class="step"><div class="step-num">04</div><h4>You book</h4><p>Click the link, log in to DVSA, and grab the slot.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADMIN PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <h2>Admin dashboard</h2>
+      <div class="admin-lock">
+        <input type="password" id="admin-pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')unlockAdmin()">
+        <button class="btn-sm primary" onclick="unlockAdmin()">Unlock</button>
+      </div>
+    </div>
+
+    <div id="admin-locked">
+      <div class="locked-overlay">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.25;margin-bottom:8px" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <p>Enter the admin password to view subscriber data.</p>
+        <p style="font-size:12px;margin-top:6px;color:#bbb">Demo password: <strong>admin123</strong></p>
+      </div>
+    </div>
+
+    <div id="admin-content" style="display:none">
+      <div class="stats-row" id="stats-row"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:8px">
+        <div class="filter-row" style="margin:0;flex:1">
+          <input type="text" id="search-input" placeholder="Search name, email, centre…" oninput="renderTable()">
+          <select id="filter-plan" onchange="renderTable()">
+            <option value="">All plans</option>
+            <option value="trial">Trial</option>
+            <option value="basic">Basic</option>
+            <option value="standard">Standard</option>
+          </select>
+          <select id="filter-status" onchange="renderTable()">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="trial">In trial</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <button class="btn-sm primary" onclick="simulateCheck()">▶ Run check now</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th><th>Email</th><th>Plan</th><th>Centres</th>
+              <th>Channels</th><th>Alerts</th><th>MRR</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="admin-tbody"></tbody>
+        </table>
+      </div>
+      <p style="font-size:12px;color:var(--ink3);margin-top:8px" id="table-count"></p>
+
+      <!-- MRR summary -->
+      <div id="mrr-summary" style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:11px"></div>
+
+      <div id="check-log" style="margin-top:1.5rem;display:none">
+        <h3 style="font-size:13px;font-weight:500;margin-bottom:8px">Last check log</h3>
+        <div id="check-log-inner" style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:1rem;font-size:12px;color:var(--ink3);line-height:2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     ACCOUNT PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-account">
+
+  <!-- Login gate (shown when no session) -->
+  <div id="acct-gate">
+    <div class="acct-login">
+      <h3>Log in to your account</h3>
+      <p>Enter your email and password to manage your alerts and subscription.</p>
+      <input type="email" id="acct-email-input" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('acct-pw-input').focus()">
+      <div style="position:relative">
+        <input type="password" id="acct-pw-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')acctLogin()" style="padding-right:40px">
+        <button onclick="togglePwVis('acct-pw-input','acct-pw-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);font-size:16px;padding:0" id="acct-pw-eye" title="Show/hide password">👁</button>
+      </div>
+      <button onclick="acctLogin()">Log in →</button>
+      <p style="font-size:11px;color:var(--ink4);margin-top:.75rem">Demo: email <strong>ahmed@example.com</strong> · password <strong>Test1234!</strong></p>
+    </div>
+  </div>
+
+  <!-- Account content (shown after login) -->
+  <div id="acct-content" style="display:none">
+    <div class="acct-wrap">
+      <h2>My account</h2>
+
+      <!-- Current plan hero -->
+      <div id="acct-plan-hero"></div>
+
+      <!-- Upgrade / change plan -->
+      <div class="acct-section" id="acct-upgrade-section">
+        <div class="acct-section-title" id="acct-upgrade-title">Change plan</div>
+        <div class="upgrade-grid" id="acct-upgrade-grid"></div>
+      </div>
+
+      <!-- Account details -->
+      <div class="acct-section">
+        <div class="acct-section-title">Account details</div>
+        <div class="acct-card" id="acct-details-card"></div>
+      </div>
+
+      <!-- Alert preferences -->
+      <div class="acct-section">
+        <div class="acct-section-title">Alert preferences</div>
+        <div class="acct-card" id="acct-prefs-card"></div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="acct-section">
+        <div class="acct-section-title">Subscription</div>
+        <div class="acct-card">
+          <div class="acct-row">
+            <div>
+              <div class="acct-row-label">Cancel subscription</div>
+              <div class="acct-row-sub">You'll keep access until the end of your billing period.</div>
+            </div>
+            <button class="acct-action danger" onclick="openCancelModal()">Cancel plan</button>
+          </div>
+          <div class="acct-row">
+            <div>
+              <div class="acct-row-label">Withdraw WhatsApp consent</div>
+              <div class="acct-row-sub">Remove your WhatsApp number and stop WhatsApp alerts.</div>
+            </div>
+            <button class="acct-action danger" onclick="withdrawWaConsent()">Remove number</button>
+          </div>
+          <div class="acct-row">
+            <div>
+              <div class="acct-row-label">Delete my account</div>
+              <div class="acct-row-sub">Permanently delete all your data. This cannot be undone.</div>
+            </div>
+            <button class="acct-action danger" onclick="deleteAccount()">Delete account</button>
+          </div>
+          <div class="acct-row">
+            <div>
+              <div class="acct-row-label">Sign out</div>
+              <div class="acct-row-sub">You'll need to log in again to manage your account.</div>
+            </div>
+            <button class="acct-action" onclick="acctSignOut()">Sign out</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+<!-- Upgrade confirmation modal -->
+<div class="modal-bg" id="modal-upgrade">
+  <div class="modal">
+    <h3 id="modal-upgrade-title">Upgrade to Standard</h3>
+    <p id="modal-upgrade-body">You'll be switched to Standard (£3.99/mo) immediately. Your card will be charged at the next billing date.</p>
+    <div id="modal-upgrade-payment" style="display:none">
+      <div class="form-section"><label>Card number</label><input type="text" id="mu-card" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-section"><label>Expiry</label><input type="text" id="mu-exp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)"></div>
+        <div class="form-section"><label>CVC</label><input type="text" id="mu-cvc" placeholder="123" maxlength="4"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-upgrade')">Cancel</button>
+      <button class="btn-sm primary" id="modal-upgrade-confirm" onclick="confirmUpgrade()">Confirm upgrade</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit preferences modal -->
+<div class="modal-bg" id="modal-edit-prefs">
+  <div class="modal">
+    <h3>Edit alert preferences</h3>
+    <p>Changes take effect from the next hourly check.</p>
+    <div class="form-section"><label>Test from <span style="font-weight:400;color:var(--ink4)">(earliest you can take it)</span></label><input type="date" id="ep-date-from"></div>
+    <div class="form-section"><label>Test by <span style="font-weight:400;color:var(--ink4)">(last date you'd accept)</span></label><input type="date" id="ep-date-to"></div>
+    <div class="form-section">
+      <label>Preferred time</label>
+      <select id="ep-time" style="width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);outline:none">
+        <option value="any">Any time</option>
+        <option value="morning">Morning (before 12pm)</option>
+        <option value="afternoon">Afternoon (12–5pm)</option>
+        <option value="evening">Evening (after 5pm)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-edit-prefs')">Cancel</button>
+      <button class="btn-sm primary" onclick="savePrefs()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel confirmation modal -->
+<div class="modal-bg" id="modal-cancel">
+  <div class="modal">
+    <h3>Cancel your subscription?</h3>
+    <p>Your alerts will keep running until the end of your current billing period. You won't be charged again after that.</p>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-cancel')">Keep my plan</button>
+      <button class="btn-sm danger" onclick="confirmCancel()">Yes, cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="notify-toast" id="notify-toast"></div>
+
+<!-- ══════════════════════════════════════
+     BACKEND GUIDE
+══════════════════════════════════════ -->
+<div class="page" id="page-backend">
+  <div class="backend-wrap">
+    <h2>Backend integration guide</h2>
+    <p class="subtitle">Wiring up Stripe subscriptions, the hourly DVSA checker, WhatsApp, and email.</p>
+
+    <div class="be-section">
+      <h3>Architecture</h3>
+      <div class="arch-step"><div class="arch-num">1</div><div><h4>Database — Supabase <span class="cost-pill free">Free tier</span></h4><p>Table <code>subscribers</code>: id, name, email, whatsapp, centres[], date_from, date_to, time_pref, plan (trial/basic/standard/pro), stripe_customer_id, stripe_sub_id, trial_ends_at, active, alerts_sent, created_at.</p></div></div>
+      <div class="arch-step"><div class="arch-num">2</div><div><h4>Stripe subscriptions <span class="cost-pill paid">2.9% + 20p/txn</span></h4><p>Create products for Basic (£1.99), Standard (£3.99), Pro (£4.99). Use Stripe Checkout with <code>trial_period_days: 7</code>. Listen to <code>customer.subscription.deleted</code> webhook to mark users inactive. Store <code>stripe_customer_id</code> in your DB.</p></div></div>
+      <div class="arch-step"><div class="arch-num">3</div><div><h4>Cron job — Railway <span class="cost-pill free">Free/$5</span></h4><p>Schedule <code>0 * * * *</code> (hourly). Pro subscribers also run at <code>30 * * * *</code>. Fetch active subscribers, check DVSA, send notifications for matches.</p></div></div>
+      <div class="arch-step"><div class="arch-num">4</div><div><h4>Email — SendGrid <span class="cost-pill free">100/day free</span></h4><p>Triggered when a slot matches a subscriber with email enabled (all plans).</p></div></div>
+      <div class="arch-step"><div class="arch-num">5</div><div><h4>WhatsApp — Twilio <span class="cost-pill paid">£0.005/msg</span></h4><p>Standard and Pro plans only. Requires WhatsApp Business opt-in from user. Use approved message template for outbound alerts.</p></div></div>
+    </div>
+
+    <div class="be-section">
+      <h3>Stripe plan setup (Node.js)</h3>
+      <pre><span class="c">// Run once to create your Stripe products + prices</span>
+<span class="k">const</span> stripe = <span class="f">require</span>(<span class="s">'stripe'</span>)(process.env.STRIPE_SECRET);
+
+<span class="k">const</span> plans = [
+  { name: <span class="s">'CancelCatch Basic'</span>,    amount: 99,  id: <span class="s">'basic'</span>    },
+  { name: <span class="s">'CancelCatch Standard'</span>, amount: 249, id: <span class="s">'standard'</span> },
+  { name: <span class="s">'CancelCatch Pro'</span>,      amount: 499, id: <span class="s">'pro'</span>      },
+];
+
+<span class="k">for</span> (<span class="k">const</span> p <span class="k">of</span> plans) {
+  <span class="k">const</span> product = <span class="k">await</span> stripe.products.<span class="f">create</span>({ name: p.name, metadata: { plan_id: p.id } });
+  <span class="k">const</span> price   = <span class="k">await</span> stripe.prices.<span class="f">create</span>({
+    product: product.id,
+    unit_amount: p.amount,
+    currency: <span class="s">'gbp'</span>,
+    recurring: { interval: <span class="s">'month'</span>, trial_period_days: 7 }
+  });
+  console.<span class="f">log</span>(<span class="s">`${p.id}: ${price.id}`</span>); <span class="c">// save these price IDs to your .env</span>
+}</pre>
+    </div>
+
+    <div class="be-section">
+      <h3>Signup API endpoint</h3>
+      <pre><span class="c">// POST /api/subscribe — called when form is submitted</span>
+<span class="f">app</span>.<span class="f">post</span>(<span class="s">'/api/subscribe'</span>, <span class="k">async</span> (req, res) => {
+  <span class="k">const</span> { name, email, whatsapp, centres, plan, ...prefs } = req.body;
+
+  <span class="k">if</span> (plan === <span class="s">'trial'</span>) {
+    <span class="c">// No Stripe — just save to DB</span>
+    <span class="k">await</span> supabase.<span class="f">from</span>(<span class="s">'subscribers'</span>).<span class="f">insert</span>({
+      name, email, whatsapp, centres, plan: <span class="s">'trial'</span>,
+      trial_ends_at: <span class="k">new</span> <span class="f">Date</span>(Date.now() + 7*86400000),
+      active: <span class="k">true</span>, ...prefs
+    });
+    <span class="k">return</span> res.<span class="f">json</span>({ ok: <span class="k">true</span> });
+  }
+
+  <span class="c">// Paid plan — create Stripe Checkout session</span>
+  <span class="k">const</span> priceIds = {
+    basic: process.env.STRIPE_PRICE_BASIC,
+    standard: process.env.STRIPE_PRICE_STANDARD,
+    pro: process.env.STRIPE_PRICE_PRO,
+  };
+  <span class="k">const</span> session = <span class="k">await</span> stripe.checkout.sessions.<span class="f">create</span>({
+    mode: <span class="s">'subscription'</span>,
+    payment_method_types: [<span class="s">'card'</span>],
+    customer_email: email,
+    line_items: [{ price: priceIds[plan], quantity: 1 }],
+    subscription_data: { trial_period_days: 7 },
+    success_url: <span class="s">`${BASE_URL}/?success=1`</span>,
+    cancel_url:  <span class="s">`${BASE_URL}/`</span>,
+    metadata: { name, whatsapp, centres: <span class="f">JSON.stringify</span>(centres), plan, ...prefs }
+  });
+  res.<span class="f">json</span>({ checkoutUrl: session.url });
+});</pre>
+    </div>
+
+    <div class="be-section">
+      <h3>Hourly cron (with plan-based routing)</h3>
+      <pre><span class="c">// cron.js — 0 * * * * (hourly) and 30 * * * * (Pro top-up)</span>
+<span class="k">async function</span> <span class="f">run</span>(proOnly = <span class="k">false</span>) {
+  <span class="k">let</span> query = supabase.<span class="f">from</span>(<span class="s">'subscribers'</span>).<span class="f">select</span>(<span class="s">'*'</span>).<span class="f">eq</span>(<span class="s">'active'</span>, <span class="k">true</span>);
+  <span class="k">if</span> (proOnly) query = query.<span class="f">eq</span>(<span class="s">'plan'</span>, <span class="s">'pro'</span>);
+  <span class="k">const</span> { data: subs } = <span class="k">await</span> query;
+
+  <span class="k">for</span> (<span class="k">const</span> sub <span class="k">of</span> subs) {
+    <span class="c">// expire trials</span>
+    <span class="k">if</span> (sub.plan === <span class="s">'trial'</span> && <span class="k">new</span> <span class="f">Date</span>(sub.trial_ends_at) < <span class="k">new</span> <span class="f">Date</span>()) {
+      <span class="k">await</span> supabase.<span class="f">from</span>(<span class="s">'subscribers'</span>).<span class="f">update</span>({ active: <span class="k">false</span> }).<span class="f">eq</span>(<span class="s">'id'</span>, sub.id);
+      <span class="k">continue</span>;
+    }
+    <span class="k">for</span> (<span class="k">const</span> centre <span class="k">of</span> sub.centres) {
+      <span class="k">const</span> slots = <span class="k">await</span> <span class="f">checkDVSA</span>(centre, sub.date_from, sub.date_to, sub.time_pref);
+      <span class="k">if</span> (slots.length) <span class="k">await</span> <span class="f">notify</span>(sub, centre, slots[0]);
+    }
+  }
+}
+
+<span class="c">// Schedule: runs continuously 24/7</span>
+<span class="f">cron</span>.<span class="f">schedule</span>(<span class="s">'0 * * * *'</span>,  () => <span class="f">run</span>(<span class="k">false</span>));
+<span class="f">cron</span>.<span class="f">schedule</span>(<span class="s">'30 * * * *'</span>, () => <span class="f">run</span>(<span class="k">true</span>));</pre>
+    </div>
+
+    <div class="be-section">
+      <h3>Recommended services</h3>
+      <div class="service-grid">
+        <div class="service-card"><h4>Supabase <span class="cost-pill free">Free</span></h4><p>Postgres DB + REST + auth. Free tier handles up to ~50k subscribers.</p></div>
+        <div class="service-card"><h4>Stripe <span class="cost-pill paid">2.9%+20p</span></h4><p>Subscriptions, trials, and webhooks. No monthly fee.</p></div>
+        <div class="service-card"><h4>Railway <span class="cost-pill free">Free/$5</span></h4><p>Host your Node.js cron job with native cron scheduling.</p></div>
+        <div class="service-card"><h4>SendGrid <span class="cost-pill free">Free</span></h4><p>100 emails/day free. 50k/mo for $15.</p></div>
+        <div class="service-card"><h4>Twilio WA <span class="cost-pill paid">£0.005/msg</span></h4><p>WhatsApp Business API. Requires template approval.</p></div>
+        <div class="service-card"><h4>Vercel <span class="cost-pill free">Free</span></h4><p>Host the frontend. Auto-deploys from GitHub.</p></div>
+      </div>
+    </div>
+
+    <div class="be-section">
+      <h3>Environment variables</h3>
+      <pre>SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_KEY=your_service_role_key
+STRIPE_SECRET=sk_live_xxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxx
+STRIPE_PRICE_BASIC=price_xxxx
+STRIPE_PRICE_STANDARD=price_xxxx
+STRIPE_PRICE_PRO=price_xxxx
+TWILIO_SID=ACxxxxxxxx
+TWILIO_TOKEN=your_auth_token
+TWILIO_WA_NUMBER=whatsapp:+14155238886
+SENDGRID_KEY=SG.xxxxxxxxxxxx
+ADMIN_PASSWORD=your_admin_password
+BASE_URL=https://cancelcatch.co.uk</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── VALIDATION HELPERS ── */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+function isValidPhone(phone) {
+  return /^\+?[\d\s\-().]{7,20}$/.test(phone);
+}
+function showFieldError(inputId, msg) {
+  const el = document.getElementById(inputId);
+  el.style.borderColor = 'var(--red)';
+  el.style.boxShadow = '0 0 0 3px rgba(192,57,43,0.1)';
+  let hint = el.nextElementSibling;
+  if (!hint || !hint.classList.contains('field-error')) {
+    hint = document.createElement('p');
+    hint.className = 'field-error';
+    hint.style.cssText = 'font-size:11px;color:var(--red);margin-top:4px';
+    el.parentNode.insertBefore(hint, el.nextSibling);
+  }
+  hint.textContent = msg;
+}
+function clearFieldError(inputId) {
+  const el = document.getElementById(inputId);
+  el.style.borderColor = '';
+  el.style.boxShadow = '';
+  const hint = el.nextElementSibling;
+  if (hint && hint.classList.contains('field-error')) hint.remove();
+}
+function clearAllErrors() {
+  document.querySelectorAll('.field-error').forEach(e => e.remove());
+  document.querySelectorAll('#signup-form-wrap input, #signup-form-wrap select').forEach(el => {
+    el.style.borderColor = ''; el.style.boxShadow = '';
+  });
+}
+
+/* ── PAGE ROUTING ── */
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ── PLAN SELECTION ── */
+let currentPlan = 'trial';
+const PLAN_CONFIG = {
+  trial:    { name:'7-day free trial', price:'free', icon:'🎁', desc:'Email alerts during trial. Add your WhatsApp when you upgrade to Standard.', summaryClass:'trial', btnClass:'free', btnText:'Start free trial →', note:'No card required. Full refund before your first alert. Trial lasts 7 days.', waEnabled:false, maxCentres:3 },
+  basic:    { name:'Basic — £1.99/mo', price:'£1.99/mo', icon:'📧', desc:'Email alerts only. Up to 3 test centres.', summaryClass:'basic', btnClass:'', btnText:'Start 7-day trial →', note:'7-day free trial. Card charged after trial if not cancelled.', waEnabled:false, maxCentres:3 },
+  standard: { name:'Standard — £3.99/mo', price:'£3.99/mo', icon:'💬', desc:'Email + WhatsApp alerts. Up to 3 test centres.', summaryClass:'standard', btnClass:'primary', btnText:'Start 7-day trial →', note:'7-day free trial. Card charged after trial if not cancelled.', waEnabled:true, maxCentres:3 },
+};
+
+function selectPlan(plan) {
+  currentPlan = plan;
+  document.querySelectorAll('.plan-strip-opt').forEach(el => { el.classList.remove('sel','gold'); });
+  const el = document.getElementById('pso-' + plan);
+  el.classList.add('sel');
+  if (plan === 'pro') el.classList.add('gold');
+
+  const cfg = PLAN_CONFIG[plan];
+  const sb = document.getElementById('plan-summary-box');
+  sb.className = 'plan-summary ' + cfg.summaryClass;
+  sb.innerHTML = `<span class="ps-icon">${cfg.icon}</span><span><strong>${cfg.name}</strong> — ${cfg.desc}</span>`;
+
+  const payBlock = document.getElementById('payment-block');
+  payBlock.style.display = plan === 'trial' ? 'none' : 'block';
+
+  const waField = document.getElementById('wa-field');
+  const waOpt = document.getElementById('wa-opt');
+  const waCheckbox = document.getElementById('notif-wa');
+  // Trial plan: disable WA field and checkbox — no WA alerts on trial
+  var isTrialOrBasic = (plan === 'trial' || plan === 'basic');
+  waField.style.opacity = isTrialOrBasic ? '0.4' : '1';
+  waField.style.pointerEvents = isTrialOrBasic ? 'none' : '';
+  waOpt.style.opacity = isTrialOrBasic ? '0.4' : '1';
+  waOpt.style.pointerEvents = isTrialOrBasic ? 'none' : '';
+  waCheckbox.checked = !isTrialOrBasic;
+  waCheckbox.disabled = isTrialOrBasic;
+  // Show tooltip on trial WA field
+  var waNote = document.getElementById('wa-plan-note');
+  if (waNote) waNote.style.display = isTrialOrBasic ? 'block' : 'none';
+  // Clear WA field and error if plan doesn't support WhatsApp
+  if (isTrialOrBasic) {
+    document.getElementById('whatsapp').value = '+44 ';
+    clearFieldError('whatsapp');
+  }
+  syncNotifCheckboxes();
+  if (typeof syncConsentBlock === 'function') syncConsentBlock();
+
+  const btn = document.getElementById('submit-btn');
+  btn.className = 'submit-btn ' + cfg.btnClass;
+  btn.textContent = cfg.btnText;
+
+  document.getElementById('form-note').textContent = cfg.note;
+
+  renderCentres();
+  // Re-run WA validation whenever plan changes
+  if (window.validateWaField) window.validateWaField();
+}
+
+function selectPlanAndGo(plan) {
+  selectPlan(plan);
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-signup').classList.add('active');
+  window.scrollTo(0,0);
+  setTimeout(() => document.getElementById('signup-form-wrap').scrollIntoView({behavior:'smooth', block:'start'}), 100);
+}
+
+/* ── CENTRES AUTOCOMPLETE ── */
+const selectedCentres = [];
+const ALL_CENTRES = [{"name": "Ashford (London Middlesex)", "region": "London"}, {"name": "Barking (Tanner Street)", "region": "London"}, {"name": "Barnet (London)", "region": "London"}, {"name": "Belvedere (London)", "region": "London"}, {"name": "Borehamwood (London)", "region": "London"}, {"name": "Brentwood (London)", "region": "London"}, {"name": "Bromley (London)", "region": "London"}, {"name": "Chertsey (London)", "region": "London"}, {"name": "Chingford (London)", "region": "London"}, {"name": "Enfield (Innova Business Park)", "region": "London"}, {"name": "Erith (London)", "region": "London"}, {"name": "Goodmayes (London)", "region": "London"}, {"name": "Hendon (London)", "region": "London"}, {"name": "Hither Green (London)", "region": "London"}, {"name": "Hornchurch (London)", "region": "London"}, {"name": "Isleworth (Fleming Way)", "region": "London"}, {"name": "Loughton (London)", "region": "London"}, {"name": "Mill Hill (London)", "region": "London"}, {"name": "Mitcham (London)", "region": "London"}, {"name": "Morden (London)", "region": "London"}, {"name": "Pinner (London)", "region": "London"}, {"name": "Sidcup (London)", "region": "London"}, {"name": "Slough (London)", "region": "London"}, {"name": "Southall (London)", "region": "London"}, {"name": "Tolworth (London)", "region": "London"}, {"name": "Tottenham", "region": "London"}, {"name": "Uxbridge (London)", "region": "London"}, {"name": "Wanstead (London)", "region": "London"}, {"name": "West Wickham (London)", "region": "London"}, {"name": "Wood Green (London)", "region": "London"}, {"name": "Yeading (London)", "region": "London"}, {"name": "Aylesbury", "region": "South East"}, {"name": "Basingstoke", "region": "South East"}, {"name": "Burgess Hill", "region": "South East"}, {"name": "Canterbury", "region": "South East"}, {"name": "Chatham", "region": "South East"}, {"name": "Chichester", "region": "South East"}, {"name": "Clacton-on-Sea", "region": "South East"}, {"name": "Colchester", "region": "South East"}, {"name": "Crawley", "region": "South East"}, {"name": "Dartford", "region": "South East"}, {"name": "Dover", "region": "South East"}, {"name": "Eastbourne", "region": "South East"}, {"name": "Farnborough", "region": "South East"}, {"name": "Folkestone", "region": "South East"}, {"name": "Gillingham", "region": "South East"}, {"name": "Guildford", "region": "South East"}, {"name": "Hastings (Ore)", "region": "South East"}, {"name": "Herne Bay", "region": "South East"}, {"name": "High Wycombe", "region": "South East"}, {"name": "Horsham", "region": "South East"}, {"name": "Lancing", "region": "South East"}, {"name": "Maidstone", "region": "South East"}, {"name": "Medway", "region": "South East"}, {"name": "Newbury (Hambridge Lane)", "region": "South East"}, {"name": "Oxford (Cowley)", "region": "South East"}, {"name": "Portsmouth", "region": "South East"}, {"name": "Reading", "region": "South East"}, {"name": "Redhill Aerodrome", "region": "South East"}, {"name": "Rochester", "region": "South East"}, {"name": "Sevenoaks", "region": "South East"}, {"name": "Southampton (Forest Hills)", "region": "South East"}, {"name": "Southampton (Maybush)", "region": "South East"}, {"name": "Thanet", "region": "South East"}, {"name": "Tunbridge Wells", "region": "South East"}, {"name": "Winchester", "region": "South East"}, {"name": "Barnstaple", "region": "South West"}, {"name": "Bath", "region": "South West"}, {"name": "Bodmin", "region": "South West"}, {"name": "Bournemouth", "region": "South West"}, {"name": "Bristol (Avonmouth)", "region": "South West"}, {"name": "Bristol (Kingswood)", "region": "South West"}, {"name": "Camborne", "region": "South West"}, {"name": "Cheltenham", "region": "South West"}, {"name": "Chippenham", "region": "South West"}, {"name": "Dorchester", "region": "South West"}, {"name": "Exeter", "region": "South West"}, {"name": "Gloucester", "region": "South West"}, {"name": "Launceston", "region": "South West"}, {"name": "Newton Abbot", "region": "South West"}, {"name": "Plymouth", "region": "South West"}, {"name": "Poole", "region": "South West"}, {"name": "Salisbury", "region": "South West"}, {"name": "Swindon", "region": "South West"}, {"name": "Taunton", "region": "South West"}, {"name": "Torquay", "region": "South West"}, {"name": "Trowbridge", "region": "South West"}, {"name": "Truro", "region": "South West"}, {"name": "Weston-super-Mare", "region": "South West"}, {"name": "Yeovil", "region": "South West"}, {"name": "Bedford", "region": "East of England"}, {"name": "Bishops Stortford", "region": "East of England"}, {"name": "Bury St Edmunds", "region": "East of England"}, {"name": "Cambridge (Brookmount Court)", "region": "East of England"}, {"name": "Chelmsford (Hanbury Road)", "region": "East of England"}, {"name": "Ipswich", "region": "East of England"}, {"name": "Kings Lynn", "region": "East of England"}, {"name": "Letchworth", "region": "East of England"}, {"name": "Lowestoft (Mobbs Way)", "region": "East of England"}, {"name": "Luton", "region": "East of England"}, {"name": "Norwich (Jupiter Road)", "region": "East of England"}, {"name": "Norwich (Peachman Way)", "region": "East of England"}, {"name": "Peterborough", "region": "East of England"}, {"name": "Southend-on-Sea", "region": "East of England"}, {"name": "St Albans", "region": "East of England"}, {"name": "Stevenage", "region": "East of England"}, {"name": "Tilbury", "region": "East of England"}, {"name": "Watford", "region": "East of England"}, {"name": "Ashfield", "region": "East Midlands"}, {"name": "Boston", "region": "East Midlands"}, {"name": "Burton on Trent", "region": "East Midlands"}, {"name": "Buxton", "region": "East Midlands"}, {"name": "Chesterfield", "region": "East Midlands"}, {"name": "Derby (Alvaston)", "region": "East Midlands"}, {"name": "Grantham (Somerby)", "region": "East Midlands"}, {"name": "Hinckley", "region": "East Midlands"}, {"name": "Kettering", "region": "East Midlands"}, {"name": "Leicester (Cannock Street)", "region": "East Midlands"}, {"name": "Leicester (Wigston)", "region": "East Midlands"}, {"name": "Leighton Buzzard (Stanbridge Road)", "region": "East Midlands"}, {"name": "Lichfield", "region": "East Midlands"}, {"name": "Lincoln", "region": "East Midlands"}, {"name": "Loughborough", "region": "East Midlands"}, {"name": "Louth", "region": "East Midlands"}, {"name": "Melton Mowbray", "region": "East Midlands"}, {"name": "Northampton", "region": "East Midlands"}, {"name": "Nottingham (Chilwell)", "region": "East Midlands"}, {"name": "Nuneaton", "region": "East Midlands"}, {"name": "Rugby", "region": "East Midlands"}, {"name": "Rushden", "region": "East Midlands"}, {"name": "Skegness", "region": "East Midlands"}, {"name": "Wellingborough", "region": "East Midlands"}, {"name": "Worksop", "region": "East Midlands"}, {"name": "Birmingham (Garretts Green)", "region": "West Midlands"}, {"name": "Birmingham (Kings Heath)", "region": "West Midlands"}, {"name": "Birmingham (Kingstanding)", "region": "West Midlands"}, {"name": "Birmingham (Shirley)", "region": "West Midlands"}, {"name": "Birmingham (South Yardley)", "region": "West Midlands"}, {"name": "Birmingham (Sutton Coldfield)", "region": "West Midlands"}, {"name": "Coventry", "region": "West Midlands"}, {"name": "Dudley", "region": "West Midlands"}, {"name": "Hereford", "region": "West Midlands"}, {"name": "Ludlow", "region": "West Midlands"}, {"name": "Oswestry", "region": "West Midlands"}, {"name": "Redditch", "region": "West Midlands"}, {"name": "Shrewsbury", "region": "West Midlands"}, {"name": "Stafford", "region": "West Midlands"}, {"name": "Telford", "region": "West Midlands"}, {"name": "Walsall", "region": "West Midlands"}, {"name": "Warwick (Wedgenock House)", "region": "West Midlands"}, {"name": "Wednesbury", "region": "West Midlands"}, {"name": "Whitchurch", "region": "West Midlands"}, {"name": "Wolverhampton", "region": "West Midlands"}, {"name": "Worcester", "region": "West Midlands"}, {"name": "Atherton (Manchester)", "region": "North West"}, {"name": "Blackburn with Darwen", "region": "North West"}, {"name": "Blackpool", "region": "North West"}, {"name": "Bolton (Manchester)", "region": "North West"}, {"name": "Bury (Manchester)", "region": "North West"}, {"name": "Chadderton", "region": "North West"}, {"name": "Cheetham Hill (Manchester)", "region": "North West"}, {"name": "Chester", "region": "North West"}, {"name": "Chorley", "region": "North West"}, {"name": "Crewe", "region": "North West"}, {"name": "Heysham", "region": "North West"}, {"name": "Hyde (Manchester)", "region": "North West"}, {"name": "Kendal (Oxenholme Road)", "region": "North West"}, {"name": "Lancaster", "region": "North West"}, {"name": "Macclesfield", "region": "North West"}, {"name": "Nelson", "region": "North West"}, {"name": "Norris Green (Liverpool)", "region": "North West"}, {"name": "Northwich", "region": "North West"}, {"name": "Preston", "region": "North West"}, {"name": "Rochdale (Manchester)", "region": "North West"}, {"name": "Sale (Manchester)", "region": "North West"}, {"name": "Southport", "region": "North West"}, {"name": "Speke", "region": "North West"}, {"name": "St Helens", "region": "North West"}, {"name": "Upton", "region": "North West"}, {"name": "Wallasey", "region": "North West"}, {"name": "Warrington", "region": "North West"}, {"name": "West Didsbury (Manchester)", "region": "North West"}, {"name": "Widnes", "region": "North West"}, {"name": "Workington", "region": "North West"}, {"name": "Barnsley", "region": "Yorkshire & Humber"}, {"name": "Bradford (Heaton)", "region": "Yorkshire & Humber"}, {"name": "Bradford (Thornbury)", "region": "Yorkshire & Humber"}, {"name": "Bredbury (Manchester)", "region": "Yorkshire & Humber"}, {"name": "Bridlington", "region": "Yorkshire & Humber"}, {"name": "Doncaster", "region": "Yorkshire & Humber"}, {"name": "Featherstone", "region": "Yorkshire & Humber"}, {"name": "Halifax", "region": "Yorkshire & Humber"}, {"name": "Harrogate", "region": "Yorkshire & Humber"}, {"name": "Heckmondwike", "region": "Yorkshire & Humber"}, {"name": "Horsforth", "region": "Yorkshire & Humber"}, {"name": "Huddersfield", "region": "Yorkshire & Humber"}, {"name": "Hull", "region": "Yorkshire & Humber"}, {"name": "Knaresborough", "region": "Yorkshire & Humber"}, {"name": "Leeds", "region": "Yorkshire & Humber"}, {"name": "Malton", "region": "Yorkshire & Humber"}, {"name": "Middlesbrough", "region": "Yorkshire & Humber"}, {"name": "Northallerton", "region": "Yorkshire & Humber"}, {"name": "Pontefract", "region": "Yorkshire & Humber"}, {"name": "Rotherham", "region": "Yorkshire & Humber"}, {"name": "Scarborough", "region": "Yorkshire & Humber"}, {"name": "Sheffield (Handsworth)", "region": "Yorkshire & Humber"}, {"name": "Sheffield (Middlewood Road)", "region": "Yorkshire & Humber"}, {"name": "Skipton", "region": "Yorkshire & Humber"}, {"name": "Steeton", "region": "Yorkshire & Humber"}, {"name": "Wakefield", "region": "Yorkshire & Humber"}, {"name": "Whitby", "region": "Yorkshire & Humber"}, {"name": "York", "region": "Yorkshire & Humber"}, {"name": "Alnwick", "region": "North East"}, {"name": "Berwick-On-Tweed", "region": "North East"}, {"name": "Blyth", "region": "North East"}, {"name": "Darlington", "region": "North East"}, {"name": "Durham", "region": "North East"}, {"name": "Elswick", "region": "North East"}, {"name": "Gateshead", "region": "North East"}, {"name": "Gosforth", "region": "North East"}, {"name": "Hartlepool", "region": "North East"}, {"name": "Hexham", "region": "North East"}, {"name": "South Shields", "region": "North East"}, {"name": "Sunderland", "region": "North East"}, {"name": "Aberdeen North", "region": "Scotland"}, {"name": "Aberdeen South (Cove)", "region": "Scotland"}, {"name": "Aberfeldy", "region": "Scotland"}, {"name": "Airdrie", "region": "Scotland"}, {"name": "Alness", "region": "Scotland"}, {"name": "Arbroath", "region": "Scotland"}, {"name": "Ayr", "region": "Scotland"}, {"name": "Baillieston (Glasgow)", "region": "Scotland"}, {"name": "Ballater", "region": "Scotland"}, {"name": "Banff", "region": "Scotland"}, {"name": "Bishopbriggs", "region": "Scotland"}, {"name": "Buckie", "region": "Scotland"}, {"name": "Campbeltown", "region": "Scotland"}, {"name": "Castle Douglas", "region": "Scotland"}, {"name": "Crieff", "region": "Scotland"}, {"name": "Cumnock", "region": "Scotland"}, {"name": "Cupar", "region": "Scotland"}, {"name": "Dingwall", "region": "Scotland"}, {"name": "Dumbarton", "region": "Scotland"}, {"name": "Dumfries", "region": "Scotland"}, {"name": "Dundee", "region": "Scotland"}, {"name": "Dunoon", "region": "Scotland"}, {"name": "Duns", "region": "Scotland"}, {"name": "East Kilbride", "region": "Scotland"}, {"name": "Edinburgh (Currie)", "region": "Scotland"}, {"name": "Edinburgh (Musselburgh)", "region": "Scotland"}, {"name": "Elgin", "region": "Scotland"}, {"name": "Forfar", "region": "Scotland"}, {"name": "Fort William", "region": "Scotland"}, {"name": "Fraserburgh", "region": "Scotland"}, {"name": "Gairloch", "region": "Scotland"}, {"name": "Galashiels", "region": "Scotland"}, {"name": "Girvan", "region": "Scotland"}, {"name": "Glasgow (Anniesland)", "region": "Scotland"}, {"name": "Glasgow (Baillieston)", "region": "Scotland"}, {"name": "Glasgow (Shieldhall)", "region": "Scotland"}, {"name": "Golspie", "region": "Scotland"}, {"name": "Grangemouth", "region": "Scotland"}, {"name": "Grantham (Somerby)", "region": "Scotland"}, {"name": "Grantown-On-Spey", "region": "Scotland"}, {"name": "Greenock", "region": "Scotland"}, {"name": "Haddington", "region": "Scotland"}, {"name": "Hamilton", "region": "Scotland"}, {"name": "Hawick", "region": "Scotland"}, {"name": "Huntly", "region": "Scotland"}, {"name": "Inveraray", "region": "Scotland"}, {"name": "Inverness (Seafield Road)", "region": "Scotland"}, {"name": "Inverurie", "region": "Scotland"}, {"name": "Irvine", "region": "Scotland"}, {"name": "Islay Island", "region": "Scotland"}, {"name": "Isle of Mull", "region": "Scotland"}, {"name": "Isle of Skye (Portree)", "region": "Scotland"}, {"name": "Kelso", "region": "Scotland"}, {"name": "Kingussie", "region": "Scotland"}, {"name": "Kirkcaldy", "region": "Scotland"}, {"name": "Kyle of Lochalsh", "region": "Scotland"}, {"name": "Lanark", "region": "Scotland"}, {"name": "Lerwick", "region": "Scotland"}, {"name": "Livingston", "region": "Scotland"}, {"name": "Lochgilphead", "region": "Scotland"}, {"name": "Mallaig", "region": "Scotland"}, {"name": "Montrose", "region": "Scotland"}, {"name": "Motherwell", "region": "Scotland"}, {"name": "Newton Stewart", "region": "Scotland"}, {"name": "Oban", "region": "Scotland"}, {"name": "Orkney", "region": "Scotland"}, {"name": "Paisley", "region": "Scotland"}, {"name": "Peebles", "region": "Scotland"}, {"name": "Perth (Arran Road)", "region": "Scotland"}, {"name": "Peterhead", "region": "Scotland"}, {"name": "Pitlochry", "region": "Scotland"}, {"name": "Rothesay", "region": "Scotland"}, {"name": "Stirling", "region": "Scotland"}, {"name": "Stornoway", "region": "Scotland"}, {"name": "Stranraer", "region": "Scotland"}, {"name": "Thurso", "region": "Scotland"}, {"name": "Wick", "region": "Scotland"}, {"name": "Abergavenny", "region": "Wales"}, {"name": "Aberystwyth (Park Avenue)", "region": "Wales"}, {"name": "Bala", "region": "Wales"}, {"name": "Bangor", "region": "Wales"}, {"name": "Barry", "region": "Wales"}, {"name": "Brecon", "region": "Wales"}, {"name": "Bridgend", "region": "Wales"}, {"name": "Cardiff (Llanishen)", "region": "Wales"}, {"name": "Cardigan", "region": "Wales"}, {"name": "Carmarthen", "region": "Wales"}, {"name": "Llanelli", "region": "Wales"}, {"name": "Llantrisant", "region": "Wales"}, {"name": "Merthyr Tydfil", "region": "Wales"}, {"name": "Monmouth", "region": "Wales"}, {"name": "Newport (Gwent)", "region": "Wales"}, {"name": "Newtown", "region": "Wales"}, {"name": "Pembroke Dock", "region": "Wales"}, {"name": "Pontypridd", "region": "Wales"}, {"name": "Pwllheli", "region": "Wales"}, {"name": "Rhyl", "region": "Wales"}, {"name": "Swansea", "region": "Wales"}, {"name": "Wrexham", "region": "Wales"}, {"name": "Antrim", "region": "Northern Ireland"}, {"name": "Armagh", "region": "Northern Ireland"}, {"name": "Ballynahinch", "region": "Northern Ireland"}, {"name": "Banbridge", "region": "Northern Ireland"}, {"name": "Belfast", "region": "Northern Ireland"}, {"name": "Coleraine", "region": "Northern Ireland"}, {"name": "Cookstown", "region": "Northern Ireland"}, {"name": "Downpatrick", "region": "Northern Ireland"}, {"name": "Enniskillen", "region": "Northern Ireland"}, {"name": "Larne", "region": "Northern Ireland"}, {"name": "Limavady", "region": "Northern Ireland"}, {"name": "Londonderry", "region": "Northern Ireland"}, {"name": "Newry", "region": "Northern Ireland"}, {"name": "Newtownabbey", "region": "Northern Ireland"}, {"name": "Omagh", "region": "Northern Ireland"}, {"name": "Portadown", "region": "Northern Ireland"}, {"name": "Strabane", "region": "Northern Ireland"}];
+
+let acHighlight = -1;
+let acFiltered = [];
+
+function acSearch(q) {
+  const dropdown = document.getElementById('ac-dropdown');
+  const query = q.trim().toLowerCase();
+  if (!query) {
+    // Show all when empty, grouped
+    acFiltered = ALL_CENTRES;
+  } else {
+    acFiltered = ALL_CENTRES.filter(c =>
+      c.name.toLowerCase().includes(query) || c.region.toLowerCase().includes(query)
+    );
+  }
+  acHighlight = -1;
+  renderDropdown(query);
+  dropdown.classList.toggle('open', acFiltered.length > 0 || query.length > 0);
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + query.length) + '</mark>' + text.slice(idx + query.length);
+}
+
+function renderDropdown(query) {
+  const dropdown = document.getElementById('ac-dropdown');
+  if (!acFiltered.length) {
+    dropdown.innerHTML = '<div class="ac-empty">No centres found</div>';
+    return;
+  }
+  // Group by region
+  const groups = {};
+  acFiltered.forEach(c => {
+    if (!groups[c.region]) groups[c.region] = [];
+    groups[c.region].push(c);
+  });
+  let html = '';
+  Object.entries(groups).forEach(([region, centres]) => {
+    html += `<div class="ac-group-label">${region}</div>`;
+    centres.forEach((c, i) => {
+      const globalIdx = acFiltered.indexOf(c);
+      html += `<div class="ac-item${acHighlight === globalIdx ? ' highlighted' : ''}" 
+        onmousedown="acSelect('${c.name.replace(/'/g,"\'")}')">
+        ${highlight(c.name, query)}
+        <span class="ac-region">${c.region}</span>
+      </div>`;
+    });
+  });
+  dropdown.innerHTML = html;
+}
+
+function acSelect(name) {
+  const max = PLAN_CONFIG[currentPlan].maxCentres;
+  const inp = document.getElementById('centre-search');
+  if (selectedCentres.includes(name)) {
+    inp.value = '';
+    document.getElementById('ac-dropdown').classList.remove('open');
+    return;
+  }
+  if (selectedCentres.length >= max) {
+    showToast(`Your plan allows up to ${max} centre${max===1?'':'s'}. Upgrade for more.`);
+    inp.value = '';
+    document.getElementById('ac-dropdown').classList.remove('open');
+    return;
+  }
+  selectedCentres.push(name);
+  inp.value = '';
+  document.getElementById('ac-dropdown').classList.remove('open');
+  acHighlight = -1;
+  renderCentres();
+}
+
+function acKeydown(e) {
+  const dropdown = document.getElementById('ac-dropdown');
+  if (!dropdown.classList.contains('open')) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acHighlight = Math.min(acHighlight + 1, acFiltered.length - 1);
+    renderDropdown(document.getElementById('centre-search').value.trim());
+    const items = dropdown.querySelectorAll('.ac-item');
+    if (items[acHighlight]) items[acHighlight].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acHighlight = Math.max(acHighlight - 1, 0);
+    renderDropdown(document.getElementById('centre-search').value.trim());
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acHighlight >= 0 && acFiltered[acHighlight]) {
+      acSelect(acFiltered[acHighlight].name);
+    } else if (acFiltered.length === 1) {
+      acSelect(acFiltered[0].name);
+    }
+  } else if (e.key === 'Escape') {
+    dropdown.classList.remove('open');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ac-wrap')) {
+    const d = document.getElementById('ac-dropdown');
+    if (d) d.classList.remove('open');
+  }
+});
+function removeCentre(c) {
+  const i = selectedCentres.indexOf(c);
+  if (i > -1) selectedCentres.splice(i, 1);
+  renderCentres();
+}
+function renderCentres() {
+  const list = document.getElementById('centres-list');
+  list.innerHTML = '';
+  if (selectedCentres.length === 0) {
+    list.innerHTML = '<span style="font-size:12px;color:var(--ink4)">No centres added yet</span>';
+    return;
+  }
+  selectedCentres.forEach(c => {
+    const tag = document.createElement('span');
+    tag.className = 'centre-tag';
+    tag.innerHTML = `${c} <button onclick="removeCentre('${c.replace(/'/g,"\\'")}')">×</button>`;
+    list.appendChild(tag);
+  });
+  const max = PLAN_CONFIG[currentPlan].maxCentres;
+  if (max < 99) {
+    const hint = document.createElement('span');
+    hint.style.cssText = 'font-size:11px;color:var(--ink4);align-self:center';
+    hint.textContent = `${selectedCentres.length}/${max}`;
+    list.appendChild(hint);
+  }
+}
+
+/* ── CARD FORMATTING ── */
+function fmtCard(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function fmtExp(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 3) v = v.substring(0,2) + ' / ' + v.substring(2);
+  el.value = v;
+}
+
+/* ── FORM SUBMIT ── */
+const subscribers = JSON.parse(localStorage.getItem('cc_subs') || '[]');
+
+function submitForm() {
+  const fname = document.getElementById('fname').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const wa = document.getElementById('whatsapp').value.trim();
+  const notifEmail = document.getElementById('notif-email').checked;
+  const notifWa = document.getElementById('notif-wa').checked;
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo = document.getElementById('date-to').value;
+
+  clearAllErrors();
+  // Hide consent error initially
+  document.getElementById('consent-error').style.display = 'none';
+  let valid = true;
+
+  // Validate consent checkboxes
+  const notifWaChecked = document.getElementById('notif-wa').checked;
+  const consentWa = document.getElementById('consent-whatsapp').checked;
+  const consentTerms = document.getElementById('consent-terms').checked;
+  if (!consentTerms) { showToast('Please agree to the Terms & Privacy Policy.'); valid = false; }
+  if (notifWaChecked && !consentWa) {
+    document.getElementById('consent-error').style.display = 'block';
+    valid = false;
+  }
+
+  if (!fname) { showFieldError('fname', 'First name is required.'); valid = false; }
+  const pw = document.getElementById('password').value;
+  const pw2 = document.getElementById('password-confirm').value;
+  if (!pw) { showFieldError('password', 'Password is required.'); valid = false; }
+  else if (pw.length < 8) { showFieldError('password', 'Password must be at least 8 characters.'); valid = false; }
+  else if (!/[A-Z]/.test(pw)) { showFieldError('password', 'Include at least one uppercase letter.'); valid = false; }
+  else if (!/[0-9]/.test(pw)) { showFieldError('password', 'Include at least one number.'); valid = false; }
+  if (pw && pw2 && pw !== pw2) { showFieldError('password-confirm', 'Passwords do not match.'); valid = false; }
+  if (!email) { showFieldError('email', 'Email address is required.'); valid = false; }
+  else if (!isValidEmail(email)) { showFieldError('email', 'Please enter a valid email address (e.g. jane@example.com).'); valid = false; }
+  if (notifWa && !wa.replace(/^\+44\s*/, '').replace(/\s/g,'')) {
+    showFieldError('whatsapp', 'Enter your WhatsApp number or uncheck WhatsApp above.');
+    valid = false;
+  } else if (notifWa && wa) {
+    const digits = wa.replace(/^\+44\s*/, '').replace(/\s/g, '');
+    if (digits.length !== 10) { showFieldError('whatsapp', 'Enter a valid 10-digit UK number after +44.'); valid = false; }
+  }
+  if (selectedCentres.length === 0) {
+    const hint = document.getElementById('no-centres-hint') || document.getElementById('centres-list');
+    if (hint) { hint.style.color = 'var(--red)'; hint.textContent = 'Please add at least one test centre.'; }
+    valid = false;
+  }
+  if (!notifEmail && !notifWa) {
+    showToast('Please select at least one notification channel.');
+    valid = false;
+  }
+  if (!valid) return;
+
+  const record = {
+    id: Date.now(),
+    fname, lname: document.getElementById('lname').value.trim(), email, whatsapp: wa, password: btoa(pw),
+    centres: [...selectedCentres],
+    dateFrom, dateTo,
+    timePref: document.getElementById('time-pref').value,
+    notifEmail, notifWa,
+    plan: currentPlan,
+    alertsSent: 0,
+    active: true,
+    status: currentPlan === 'trial' ? 'trial' : 'active',
+    mrr: currentPlan === 'trial' ? 0 : currentPlan === 'basic' ? 1.99 : currentPlan === 'standard' ? 3.99 : 4.99,
+    createdAt: new Date().toLocaleDateString('en-GB')
+  };
+  subscribers.push(record);
+  localStorage.setItem('cc_subs', JSON.stringify(subscribers));
+
+  document.getElementById('signup-form-wrap').style.display = 'none';
+  if (window._postSignupStatsHook) window._postSignupStatsHook();
+  const sc = document.getElementById('success-card');
+  sc.style.display = 'block';
+  const channels = [notifEmail?'email':'', notifWa?'WhatsApp':''].filter(Boolean).join(' & ');
+  const planNames = { trial:'free 7-day trial', basic:'Basic plan', standard:'Standard plan', pro:'Pro plan' };
+  document.getElementById('success-msg').innerHTML =
+    `You're on the <strong>${planNames[currentPlan]}</strong>. We'll watch <strong>${selectedCentres.join(', ')}</strong> and alert you via ${channels} the moment a matching slot opens up.${currentPlan==='trial'?' Your trial lasts 7 days.':''}`;
+}
+
+/* ── ADMIN ── */
+function unlockAdmin() {
+  if (document.getElementById('admin-pw').value === 'admin123') {
+    document.getElementById('admin-locked').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    renderAdmin();
+  } else { alert('Incorrect password.'); }
+}
+
+function getSubs() { return JSON.parse(localStorage.getItem('cc_subs') || '[]'); }
+
+const PLAN_BADGE = {
+  trial:    '<span class="badge badge-trial">Trial</span>',
+  basic:    '<span class="badge badge-blue">Basic</span>',
+  standard: '<span class="badge badge-green">Standard</span>',
+};
+
+function renderAdmin() {
+  const subs = getSubs();
+  const mrr = subs.filter(s=>s.active).reduce((a,s)=>a+(s.mrr||0),0);
+  const arr = mrr * 12;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-box"><div class="stat-n">${subs.length}</div><div class="stat-l">Total subscribers</div></div>
+    <div class="stat-box"><div class="stat-n">${subs.filter(s=>s.active&&s.plan!=='trial').length}</div><div class="stat-l">Paying users</div></div>
+    <div class="stat-box"><div class="stat-n">${subs.filter(s=>s.status==='trial').length}</div><div class="stat-l">In trial</div></div>
+    <div class="stat-box"><div class="stat-n">£${mrr.toFixed(2)}</div><div class="stat-l">MRR</div></div>
+    <div class="stat-box"><div class="stat-n">£${Math.round(arr)}</div><div class="stat-l">ARR (projected)</div></div>
+    <div class="stat-box"><div class="stat-n">${subs.reduce((a,s)=>a+s.alertsSent,0)}</div><div class="stat-l">Alerts sent</div></div>
+  `;
+  document.getElementById('mrr-summary').innerHTML = ['trial','basic','standard'].map(p => {
+    const count = subs.filter(s=>s.plan===p&&s.active).length;
+    const pm = {trial:0,basic:1.99,standard:3.99,pro:4.99}[p];
+    return `<div class="stat-box">${PLAN_BADGE[p]}<div class="stat-n" style="margin-top:6px">${count}</div><div class="stat-l">£${(count*pm).toFixed(2)}/mo</div></div>`;
+  }).join('');
+  renderTable();
+}
+
+function renderTable() {
+  const subs = getSubs();
+  const search = (document.getElementById('search-input').value||'').toLowerCase();
+  const pf = document.getElementById('filter-plan').value;
+  const sf = document.getElementById('filter-status').value;
+
+  const filtered = subs.filter(s => {
+    const ms = !search || (s.fname+' '+s.lname).toLowerCase().includes(search) || s.email.toLowerCase().includes(search) || s.centres.some(c=>c.toLowerCase().includes(search));
+    const mp = !pf || s.plan === pf;
+    const mst = !sf || s.status === sf || (sf==='active'&&s.active&&s.plan!=='trial') || (sf==='trial'&&s.status==='trial');
+    return ms && mp && mst;
+  });
+
+  const tbody = document.getElementById('admin-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--ink3);padding:2rem">No subscribers found</td></tr>`;
+    document.getElementById('table-count').textContent = '';
+    return;
+  }
+  tbody.innerHTML = filtered.map(s => `
+    <tr>
+      <td style="font-weight:500">${s.fname} ${s.lname||''}</td>
+      <td style="color:var(--ink3)">${s.email}</td>
+      <td>${PLAN_BADGE[s.plan]}</td>
+      <td style="max-width:160px">${s.centres.map(c=>`<span class="badge badge-blue" style="margin:1px 1px;font-size:10px">${c}</span>`).join('')}</td>
+      <td>${s.notifEmail?'<span class="badge badge-gray">Email</span> ':''} ${s.notifWa?'<span class="badge badge-green">WA</span>':''}</td>
+      <td style="text-align:center">${s.alertsSent}</td>
+      <td style="font-weight:500;color:var(--green)">£${(s.mrr||0).toFixed(2)}</td>
+      <td><span class="badge ${s.active?s.status==='trial'?'badge-amber':'badge-green':'badge-gray'}">${s.status==='trial'?'Trial':s.active?'Active':'Cancelled'}</span></td>
+      <td><button class="btn-sm danger" onclick="deleteSub(${s.id})">Remove</button></td>
+    </tr>`).join('');
+  document.getElementById('table-count').textContent = `Showing ${filtered.length} of ${subs.length} subscribers`;
+}
+
+function deleteSub(id) {
+  if (!confirm('Remove this subscriber?')) return;
+  localStorage.setItem('cc_subs', JSON.stringify(getSubs().filter(s=>s.id!==id)));
+  renderAdmin();
+}
+
+function simulateCheck() {
+  const log = document.getElementById('check-log');
+  const inner = document.getElementById('check-log-inner');
+  log.style.display = 'block';
+  const subs = getSubs().filter(s=>s.active);
+  const now = new Date().toLocaleTimeString('en-GB');
+  if (!subs.length) { inner.innerHTML = `<span style="color:var(--ink3)">[${now}] No active subscribers.</span>`; return; }
+  const centres = [...new Set(subs.flatMap(s=>s.centres))];
+  const lines = [`<span style="color:#9fb8e8">[${now}] Starting availability check for ${subs.length} subscribers across ${centres.length} centres…</span>`];
+  centres.forEach(c => {
+    const match = subs.filter(s=>s.centres.includes(c));
+    const found = Math.random() > 0.6;
+    lines.push(`<span style="color:${found?'#a8d4a8':'var(--ink3)'}">[${now}] ${c}: ${found?`✓ Slot found — notifying ${match.length} subscriber(s)`:'No slots'}</span>`);
+  });
+  const proSubs = subs.filter(s=>s.plan==='pro');
+  if (proSubs.length) lines.push(`<span style="color:#e8d4a8">[${now}] Pro subscribers (${proSubs.length}): next priority check in 30 min.</span>`);
+  lines.push(`<span style="color:#e8d4a8">[${now}] Done. Next full check in 1 hour.</span>`);
+  inner.innerHTML = lines.join('<br>');
+}
+
+/* ── FAQ TOGGLE ── */
+function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
+
+/* ── SEED DEMO DATA ── */
+(function seed() {
+  if (getSubs().length) return;
+  const demo = [
+    { id:1, password:'VGVzdDEyMzQh', fname:'Ahmed', lname:'Khan', email:'ahmed@example.com', whatsapp:'+447700900111', centres:['Barking','Goodmayes'], dateFrom:'2025-09-01', dateTo:'2025-10-31', timePref:'morning', notifEmail:true, notifWa:true, plan:'standard', alertsSent:3, active:true, status:'active', mrr:3.99, createdAt:'12/08/2025' },
+    { id:2, password:'VGVzdDEyMzQh', fname:'Sophie', lname:'Turner', email:'sophie@example.com', whatsapp:'', centres:['Reading','Oxford'], dateFrom:'2025-09-15', dateTo:'2025-11-30', timePref:'any', notifEmail:true, notifWa:false, plan:'basic', alertsSent:1, active:true, status:'active', mrr:1.99, createdAt:'13/08/2025' },
+    { id:3, password:'VGVzdDEyMzQh', fname:'James', lname:'Okafor', email:'james@example.com', whatsapp:'+447700900333', centres:['Birmingham (Selly Oak)'], dateFrom:'2025-10-01', dateTo:'2025-12-31', timePref:'afternoon', notifEmail:true, notifWa:true, plan:'standard', alertsSent:0, active:true, status:'active', mrr:3.99, createdAt:'14/08/2025' },
+    { id:4, password:'VGVzdDEyMzQh', fname:'Priya', lname:'Patel', email:'priya@example.com', whatsapp:'+447700900444', centres:['Croydon','Mitcham'], dateFrom:'2025-09-01', dateTo:'2025-09-30', timePref:'any', notifEmail:true, notifWa:true, plan:'trial', alertsSent:2, active:true, status:'trial', mrr:0, createdAt:'14/08/2025' },
+    { id:5, password:'VGVzdDEyMzQh', fname:'Liam', lname:'Walsh', email:'liam@example.com', whatsapp:'', centres:['Manchester (Didsbury)'], dateFrom:'2025-10-15', dateTo:'2026-01-31', timePref:'morning', notifEmail:true, notifWa:false, plan:'basic', alertsSent:4, active:false, status:'cancelled', mrr:0, createdAt:'15/08/2025' },
+    { id:6, password:'VGVzdDEyMzQh', fname:'Nadia', lname:'Osei', email:'nadia@example.com', whatsapp:'+447700900777', centres:['Hendon','Hornsey','Enfield'], dateFrom:'2025-09-01', dateTo:'2026-02-28', timePref:'evening', notifEmail:true, notifWa:true, plan:'standard', alertsSent:9, active:true, status:'active', mrr:3.99, createdAt:'15/08/2025' },
+  ];
+  localStorage.setItem('cc_subs', JSON.stringify(demo));
+})();
+
+/* ── RESTORE SESSION ── */
+(function wireLoginValidation() {
+  const inp = document.getElementById('acct-email-input');
+  if (!inp) return;
+  let touched = false;
+  inp.addEventListener('blur', () => {
+    touched = true;
+    const v = inp.value.trim();
+    if (!v) { showLoginError('Email address is required.'); }
+    else if (!isValidEmail(v)) { showLoginError('Enter a valid email (e.g. jane@example.com).'); }
+    else {
+      inp.style.borderColor = ''; inp.style.boxShadow = '';
+      const e = document.getElementById('acct-email-error'); if (e) e.remove();
+    }
+  });
+  inp.addEventListener('input', () => {
+    if (!touched) return;
+    const v = inp.value.trim();
+    if (!v) { showLoginError('Email address is required.'); }
+    else if (!isValidEmail(v)) { showLoginError('Enter a valid email (e.g. jane@example.com).'); }
+    else {
+      inp.style.borderColor = ''; inp.style.boxShadow = '';
+      const e = document.getElementById('acct-email-error'); if (e) e.remove();
+    }
+  });
+})();
+
+(function restoreSession() {
+  const savedEmail = localStorage.getItem('cc_session_email');
+  if (!savedEmail) return;
+  const user = getSubs().find(s => s.email.toLowerCase() === savedEmail);
+  if (!user) { localStorage.removeItem('cc_session_email'); return; }
+  acctUser = user;
+  document.getElementById('acct-nav-tab').textContent = 'My account';
+  // If user lands on account page directly, show content
+  if (document.getElementById('page-account').classList.contains('active')) {
+    document.getElementById('acct-gate').style.display = 'none';
+    document.getElementById('acct-content').style.display = 'block';
+    renderAccount();
+  }
+})();
+
+/* ── DEFAULT DATES ── */
+(function wireRealTimeValidation() {
+
+  const rules = {
+    fname:    v => v.trim() ? '' : 'First name is required.',
+    lname:    v => '',
+    email:    v => !v.trim() ? 'Email address is required.' : !isValidEmail(v.trim()) ? 'Enter a valid email (e.g. jane@example.com).' : '',
+    whatsapp: v => {
+      if (!PLAN_CONFIG[currentPlan].waEnabled) return '';
+      const notifWa = document.getElementById('notif-wa');
+      if (!notifWa || !notifWa.checked) return '';
+      // Strip the +44 prefix, count only the subscriber digits (should be 10)
+      const subscriber = v.replace(/^\+44\s?/, '').replace(/\s/g, '');
+      if (!subscriber) return 'Enter your number after +44, e.g. +44 7700 900000.';
+      if (!/^\d+$/.test(subscriber)) return 'Only digits allowed after +44.';
+      if (subscriber.length < 10) return `${10 - subscriber.length} more digit${10 - subscriber.length === 1 ? '' : 's'} needed.`;
+      if (subscriber.length > 10) return 'Number too long — UK numbers have 10 digits after +44.';
+      return '';
+    },
+  };
+
+  Object.keys(rules).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // validate on blur (first touch) then live on input after that
+    let touched = false;
+    el.addEventListener('blur', () => {
+      touched = true;
+      const msg = rules[id](el.value);
+      msg ? showFieldError(id, msg) : clearFieldError(id);
+    });
+    el.addEventListener('input', () => {
+      if (!touched) return;
+      const msg = rules[id](el.value);
+      msg ? showFieldError(id, msg) : clearFieldError(id);
+    });
+  });
+
+  // Re-validate whatsapp when notif-wa checkbox changes
+  const waCheckbox = document.getElementById('notif-wa');
+  if (waCheckbox) {
+    waCheckbox.addEventListener('change', () => {
+      const wa = document.getElementById('whatsapp');
+      if (wa && wa.value) {
+        const msg = rules.whatsapp(wa.value);
+        msg ? showFieldError('whatsapp', msg) : clearFieldError('whatsapp');
+      }
+    });
+  }
+})();
+
+(function setDates() {
+  const from = new Date(); from.setDate(from.getDate()+7);
+  const to   = new Date(); to.setMonth(to.getMonth()+3);
+  document.getElementById('date-from').value = from.toISOString().split('T')[0];
+  document.getElementById('date-to').value   = to.toISOString().split('T')[0];
+})();
+
+// Init plan state on page load so WA field/checkbox reflects trial correctly
+selectPlan('trial');
+
+/* ── HANDLE ?plan= from pricing page ── */
+(function checkUrlPlan() {
+  const p = new URLSearchParams(location.search).get('plan');
+  if (p && PLAN_CONFIG[p]) selectPlan(p);
+})();
+
+/* ── ACCOUNT PAGE ── */
+let acctUser = null;
+
+const PLAN_META = {
+  trial:    { label:'Free trial',  price:'Free',      priceNum:0,    mo:'7-day trial',  features:'Email · up to 2 centres',            btnClass:'',        btnLabel:'Current plan' },
+  basic:    { label:'Basic',       price:'£1.99/mo',  priceNum:1.99, mo:'/mo',          features:'Email · up to 3 centres',            btnClass:'',        btnLabel:'Switch to Basic' },
+  standard: { label:'Standard',    price:'£3.99/mo',  priceNum:3.99, mo:'/mo',          features:'Email + WhatsApp · up to 5 centres', btnClass:'primary', btnLabel:'Upgrade to Standard' },
+};
+let pendingUpgradePlan = null;
+
+function showLoginError(msg) {
+  const inp = document.getElementById('acct-email-input');
+  inp.style.borderColor = 'var(--red)';
+  inp.style.boxShadow = '0 0 0 3px rgba(192,57,43,0.1)';
+  let hint = document.getElementById('acct-email-error');
+  if (!hint) {
+    hint = document.createElement('p');
+    hint.id = 'acct-email-error';
+    hint.style.cssText = 'font-size:12px;color:var(--red);margin-top:6px;text-align:left';
+    inp.parentNode.insertBefore(hint, inp.nextSibling);
+  }
+  hint.textContent = msg;
+}
+function acctLogin() {
+  const inp = document.getElementById('acct-email-input');
+  inp.style.borderColor = '';
+  inp.style.boxShadow = '';
+  const existing = document.getElementById('acct-email-error');
+  if (existing) existing.remove();
+  const email = document.getElementById('acct-email-input').value.trim().toLowerCase();
+  if (!email) { showLoginError('Please enter your email address.'); return; }
+  if (!isValidEmail(email)) { showLoginError('Please enter a valid email address.'); return; }
+  const subs = getSubs();
+  const user = subs.find(s => s.email.toLowerCase() === email);
+  if (!user) {
+    showLoginError('No account found with that email. Try signing up first.');
+    return;
+  }
+  // Check password
+  const enteredPw = document.getElementById('acct-pw-input').value;
+  if (!enteredPw) { showLoginError('Please enter your password.'); return; }
+  if (user.password && atob(user.password) !== enteredPw) {
+    showLoginError('Incorrect password. Please try again.');
+    return;
+  }
+  acctUser = user;
+  localStorage.setItem('cc_session_email', user.email.toLowerCase());
+  document.getElementById('acct-gate').style.display = 'none';
+  document.getElementById('acct-content').style.display = 'block';
+  // Update nav tab label to show active session
+  document.getElementById('acct-nav-tab').textContent = 'My account';
+  renderAccount();
+}
+
+function acctSignOut() {
+  acctUser = null;
+  localStorage.removeItem('cc_session_email');
+  document.getElementById('acct-gate').style.display = 'block';
+  document.getElementById('acct-content').style.display = 'none';
+  document.getElementById('acct-email-input').value = '';
+  // Revert label to "Log in" — tab stays visible for returning users
+  document.getElementById('acct-nav-tab').textContent = 'Log in';
+  showPage('signup', document.querySelectorAll('.nav-tab')[1]);
+}
+
+function renderAccount() {
+  if (!acctUser) return;
+  const u = acctUser;
+  const pm = PLAN_META[u.plan];
+
+  // ── Plan hero ──
+  const trialDaysLeft = u.plan === 'trial' ? 5 : null; // demo: 5 days left
+  const trialPct = trialDaysLeft != null ? Math.round((trialDaysLeft / 7) * 100) : 0;
+
+  document.getElementById('acct-plan-hero').innerHTML = `
+    <div class="plan-hero-card">
+      <div class="phc-left">
+        <div class="phc-plan">Current plan</div>
+        <div class="phc-name">${pm.label}</div>
+        <div class="phc-price">${u.plan === 'trial' ? '7-day free trial' : pm.price}</div>
+        ${u.plan === 'trial' ? `
+          <div class="phc-trial-bar">
+            <div class="phc-trial-label">⏳ ${trialDaysLeft} days remaining</div>
+            <div class="trial-track"><div class="trial-fill" style="width:${trialPct}%"></div></div>
+            <div style="font-size:11px;color:var(--ink3);margin-top:4px">Trial ends in ${trialDaysLeft} days. Upgrade to keep your alerts running.</div>
+          </div>` : ''}
+      </div>
+      <div class="phc-right">
+        <span class="badge ${u.active ? u.plan === 'trial' ? 'badge-amber' : 'badge-green' : 'badge-gray'}">${u.plan === 'trial' ? 'Trial active' : u.active ? 'Active' : 'Cancelled'}</span>
+        ${u.alertsSent > 0 ? `<span style="font-size:12px;color:var(--ink3)">${u.alertsSent} alerts sent</span>` : ''}
+      </div>
+    </div>`;
+
+  // ── Upgrade grid ──
+  const isUpgrade = u.plan === 'trial' || u.plan === 'basic';
+  document.getElementById('acct-upgrade-title').textContent = u.plan === 'trial' ? 'Upgrade your plan — trial ends in ' + trialDaysLeft + ' days' : 'Change plan';
+
+  const planOrder = ['trial','basic','standard'];
+  const currentIdx = planOrder.indexOf(u.plan);
+
+  document.getElementById('acct-upgrade-grid').innerHTML = ['basic','standard','pro'].map(p => {
+    const m = PLAN_META[p];
+    const isCurrent = u.plan === p;
+    const isDowngrade = planOrder.indexOf(p) < currentIdx;
+    let badge = '';
+    if (isCurrent) badge = '<span class="uc-badge current">Current plan</span>';
+    else if (p === 'standard') badge = '<span class="uc-badge popular">Most popular</span>';
+    else if (p === 'pro') badge = '<span class="uc-badge best">Best chance</span>';
+
+    let btnLabel, btnCls;
+    if (isCurrent) { btnLabel = '✓ Current plan'; btnCls = 'disabled'; }
+    else if (isDowngrade) { btnLabel = 'Switch to ' + m.label; btnCls = ''; }
+    else { btnLabel = (u.plan === 'trial' ? 'Start with ' : 'Upgrade to ') + m.label; btnCls = m.btnClass; }
+
+    return `<div class="upgrade-card ${isCurrent ? 'current-plan' : p === 'standard' && !isCurrent ? 'recommended' : ''}">
+      ${badge}
+      <div class="uc-name">${m.label}</div>
+      <div class="uc-price">${p === 'trial' ? 'Free' : '£' + m.priceNum.toFixed(2)}<span>${p === 'trial' ? '' : '/mo'}</span></div>
+      <div class="uc-features">${m.features}</div>
+      <button class="uc-btn ${btnCls}" onclick="${isCurrent ? '' : 'openUpgradeModal(\'' + p + '\')'}">${btnLabel}</button>
+    </div>`;
+  }).join('');
+
+  // ── Account details ──
+  document.getElementById('acct-details-card').innerHTML = `
+    <div class="acct-row">
+      <div><div class="acct-row-label">Name</div><div class="acct-row-value">${u.fname} ${u.lname||''}</div></div>
+      <button class="acct-action" onclick="showToast('Name changes coming soon')">Edit</button>
+    </div>
+    <div class="acct-row">
+      <div><div class="acct-row-label">Email</div><div class="acct-row-value">${u.email}</div></div>
+      <button class="acct-action" onclick="showToast('Email changes coming soon')">Edit</button>
+    </div>
+    <div class="acct-row">
+      <div><div class="acct-row-label">WhatsApp</div><div class="acct-row-value">${u.whatsapp || '—'}</div></div>
+      <button class="acct-action" onclick="showToast('WhatsApp changes coming soon')">Edit</button>
+    </div>`;
+
+  // ── Preferences ──
+  const centreList = u.centres.map(c => `<span class="badge badge-blue" style="font-size:11px;margin:1px">${c}</span>`).join(' ');
+  const timeLabels = { any:'Any time', morning:'Morning', afternoon:'Afternoon', evening:'Evening' };
+  document.getElementById('acct-prefs-card').innerHTML = `
+    <div class="acct-row">
+      <div>
+        <div class="acct-row-label">Test centres</div>
+        <div class="acct-row-value" style="margin-top:4px;font-weight:400">${centreList}</div>
+      </div>
+      <button class="acct-action" onclick="showToast('Centre editing coming soon')">Edit</button>
+    </div>
+    <div class="acct-row">
+      <div>
+        <div class="acct-row-label">Date range</div>
+        <div class="acct-row-value">${u.dateFrom||'Any'} → ${u.dateTo||'Any'}</div>
+      </div>
+      <button class="acct-action" onclick="openEditPrefs()">Edit</button>
+    </div>
+    <div class="acct-row">
+      <div>
+        <div class="acct-row-label">Time preference</div>
+        <div class="acct-row-value">${timeLabels[u.timePref]||'Any time'}</div>
+      </div>
+      <button class="acct-action" onclick="openEditPrefs()">Edit</button>
+    </div>
+    <div class="acct-row">
+      <div>
+        <div class="acct-row-label">Notification channels</div>
+        <div class="acct-row-value" style="font-weight:400;margin-top:3px">
+          ${u.notifEmail ? '<span class="badge badge-green" style="font-size:11px">Email</span> ' : ''}
+          ${u.notifWa ? '<span class="badge badge-green" style="font-size:11px">WhatsApp</span>' : ''}
+          ${!u.notifEmail && !u.notifWa ? '<span style="color:var(--ink3);font-size:13px">None</span>' : ''}
+        </div>
+      </div>
+      <button class="acct-action" onclick="showToast('Channel changes coming soon')">Edit</button>
+    </div>`;
+}
+
+function openUpgradeModal(plan) {
+  pendingUpgradePlan = plan;
+  const m = PLAN_META[plan];
+  const isTrial = acctUser.plan === 'trial';
+  document.getElementById('modal-upgrade-title').textContent = (isTrial ? 'Activate ' : 'Switch to ') + m.label;
+  const bodyText = isTrial
+    ? `Start the ${m.label} plan at ${m.price}. You have a 7-day free trial — your card will only be charged after it ends.`
+    : `Switch to ${m.label} at ${m.price}. Changes take effect immediately and billing is prorated.`;
+  document.getElementById('modal-upgrade-body').textContent = bodyText;
+  const payBlock = document.getElementById('modal-upgrade-payment');
+  const needsCard = isTrial || acctUser.plan === 'trial';
+  payBlock.style.display = needsCard ? 'block' : 'none';
+  document.getElementById('modal-upgrade').classList.add('open');
+}
+
+function confirmUpgrade() {
+  if (!pendingUpgradePlan) return;
+  const plan = pendingUpgradePlan;
+  const pm = PLAN_META[plan];
+
+  // Update in localStorage
+  const subs = getSubs();
+  const idx = subs.findIndex(s => s.id === acctUser.id);
+  if (idx > -1) {
+    subs[idx].plan = plan;
+    subs[idx].status = 'active';
+    subs[idx].active = true;
+    subs[idx].mrr = pm.priceNum;
+    subs[idx].notifWa = (plan === 'standard' || plan === 'pro') ? true : subs[idx].notifWa;
+    localStorage.setItem('cc_subs', JSON.stringify(subs));
+    acctUser = subs[idx];
+  }
+
+  closeModal('modal-upgrade');
+  pendingUpgradePlan = null;
+  renderAccount();
+  showToast('Plan updated to ' + pm.label + ' ✓');
+}
+
+function openEditPrefs() {
+  document.getElementById('ep-date-from').value = acctUser.dateFrom || '';
+  document.getElementById('ep-date-to').value = acctUser.dateTo || '';
+  document.getElementById('ep-time').value = acctUser.timePref || 'any';
+  document.getElementById('modal-edit-prefs').classList.add('open');
+}
+
+function savePrefs() {
+  const subs = getSubs();
+  const idx = subs.findIndex(s => s.id === acctUser.id);
+  if (idx > -1) {
+    subs[idx].dateFrom = document.getElementById('ep-date-from').value;
+    subs[idx].dateTo = document.getElementById('ep-date-to').value;
+    subs[idx].timePref = document.getElementById('ep-time').value;
+    localStorage.setItem('cc_subs', JSON.stringify(subs));
+    acctUser = subs[idx];
+  }
+  closeModal('modal-edit-prefs');
+  renderAccount();
+  showToast('Preferences saved ✓');
+}
+
+function openCancelModal() {
+  document.getElementById('modal-cancel').classList.add('open');
+}
+
+function confirmCancel() {
+  const subs = getSubs();
+  const idx = subs.findIndex(s => s.id === acctUser.id);
+  if (idx > -1) {
+    subs[idx].active = false;
+    subs[idx].status = 'cancelled';
+    subs[idx].mrr = 0;
+    localStorage.setItem('cc_subs', JSON.stringify(subs));
+    acctUser = subs[idx];
+  }
+  closeModal('modal-cancel');
+  renderAccount();
+  showToast('Subscription cancelled. Access continues until end of period.');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modals on background click
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-bg')) {
+    e.target.classList.remove('open');
+  }
+});
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('notify-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function goToAccount() {
+  const email = document.getElementById('email').value.trim();
+  if (email) document.getElementById('acct-email-input').value = email;
+  // Switch tab label to Log in and navigate
+  document.getElementById('acct-nav-tab').textContent = 'Log in';
+  showPage('account', document.getElementById('acct-nav-tab'));
+  // Auto-login immediately since we know their email
+  setTimeout(() => { if (document.getElementById('acct-email-input').value) acctLogin(); }, 80);
+}
+
+// After a successful signup, redirect to account page
+const _origSubmit = submitForm;
+submitForm = function() {
+  _origSubmit();
+  // Auto-populate account login with the email that was just entered
+  const email = document.getElementById('email').value.trim();
+  if (email) document.getElementById('acct-email-input').value = email;
+};
+
+
+/* ── WhatsApp field setup (global, runs once) ── */
+(function setupWaField() {
+  var inp = document.getElementById('whatsapp');
+  if (!inp) return;
+  var PREFIX = '+44 ';
+
+  function waDigits() {
+    return inp.value.replace(/^\+44\s*/, '').replace(/\s/g, '');
+  }
+  function waFormat() {
+    if (!inp.value.startsWith('+44')) inp.value = PREFIX;
+    var d = inp.value.slice(PREFIX.length).replace(/\D/g, '').slice(0, 10);
+    if (d.length > 4) d = d.slice(0, 4) + ' ' + d.slice(4);
+    inp.value = PREFIX + d;
+  }
+  // Global so selectPlan can call it
+  window.validateWaField = function() {
+    var d = waDigits();
+    if (d.length === 0)  { clearFieldError('whatsapp'); return; }
+    if (d.length < 10)   { showFieldError('whatsapp', (10 - d.length) + ' more digit' + (10 - d.length === 1 ? '' : 's') + ' needed.'); return; }
+    if (d.length > 10)   { showFieldError('whatsapp', 'Too long — UK numbers are 10 digits after +44.'); return; }
+    clearFieldError('whatsapp');
+  };
+
+  inp.addEventListener('keydown', function(e) {
+    if ((e.key === 'Backspace' || e.key === 'Delete') &&
+        inp.selectionStart <= PREFIX.length && inp.selectionEnd <= PREFIX.length) {
+      e.preventDefault();
+    }
+  });
+  inp.addEventListener('input', function() { waFormat(); window.validateWaField(); });
+  inp.addEventListener('focus', function() {
+    if (!inp.value.startsWith('+44')) inp.value = PREFIX;
+    var l = inp.value.length;
+    setTimeout(function() { inp.setSelectionRange(l, l); }, 0);
+  });
+  inp.addEventListener('click', function() {
+    if (inp.selectionStart < PREFIX.length) inp.setSelectionRange(PREFIX.length, PREFIX.length);
+  });
+  inp.addEventListener('blur', function() { window.validateWaField(); });
+  var cb = document.getElementById('notif-wa');
+  if (cb) cb.addEventListener('change', function() { window.validateWaField(); });
+})();
+
+/* ── Notification checkbox visual sync ── */
+function syncNotifCheckboxes() {
+  document.querySelectorAll('.notify-opt').forEach(function(opt) {
+    var cb = opt.querySelector('input[type="checkbox"]');
+    if (cb) opt.classList.toggle('checked', cb.checked);
+  });
+}
+// Run on page load
+syncNotifCheckboxes();
+if(typeof syncConsentBlock==="function") syncConsentBlock();
+syncConsentBlock();
+// Run whenever any notify-opt checkbox changes
+document.querySelectorAll('.notify-opt input[type="checkbox"]').forEach(function(cb) {
+  cb.addEventListener('change', function() { syncNotifCheckboxes(); syncConsentBlock(); });
+});
+
+/* ── GDPR Actions ── */
+function withdrawWaConsent() {
+  if (!confirm('Remove your WhatsApp number? You will no longer receive WhatsApp alerts.')) return;
+  var subs = getSubs();
+  var idx = subs.findIndex(function(s) { return s.id === acctUser.id; });
+  if (idx > -1) {
+    subs[idx].whatsapp = '';
+    subs[idx].notifWa = false;
+    localStorage.setItem('cc_subs', JSON.stringify(subs));
+    acctUser = subs[idx];
+  }
+  renderAccount();
+  showToast('WhatsApp number removed ✓');
+}
+
+function deleteAccount() {
+  if (!confirm('Permanently delete your account and all data? This cannot be undone.')) return;
+  if (!confirm('Are you sure? Everything will be erased.')) return;
+  var subs = getSubs().filter(function(s) { return s.id !== acctUser.id; });
+  localStorage.setItem('cc_subs', JSON.stringify(subs));
+  localStorage.removeItem('cc_session_email');
+  acctUser = null;
+  document.getElementById('acct-nav-tab').textContent = 'Log in';
+  showPage('signup', document.querySelectorAll('.nav-tab')[1]);
+  showToast('Account deleted. All your data has been removed.');
+}
+
+function syncConsentBlock() {
+  var notifWa = document.getElementById('notif-wa');
+  var block = document.querySelector('.consent-block');
+  if (block) block.style.display = (notifWa && notifWa.checked) ? 'block' : 'none';
+}
+
+/* ── Live stats counter ── */
+(function initStats() {
+  var BASE_SIGNUPS = 2847;
+  var BASE_SLOTS   = 143;
+  var localSubs    = JSON.parse(localStorage.getItem('cc_subs') || '[]').length;
+  var signups = BASE_SIGNUPS + localSubs;
+  var slots   = BASE_SLOTS;
+
+  function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
+
+  function update() {
+    var se = document.getElementById('stat-signups');
+    var sl = document.getElementById('stat-slots');
+    if (se) se.textContent = fmt(signups);
+    if (sl) sl.textContent = fmt(slots);
+  }
+
+  function countUp(id, target, duration) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var current = 0;
+    var step = target / (duration / 20);
+    var t = setInterval(function() {
+      current += step;
+      if (current >= target) { current = target; clearInterval(t); }
+      el.textContent = fmt(Math.floor(current));
+    }, 20);
+  }
+
+  setTimeout(function() {
+    countUp('stat-signups', signups, 1200);
+    countUp('stat-slots',   slots,   900);
+  }, 400);
+
+  // Slowly tick to feel live
+  setInterval(function() {
+    if (Math.random() > 0.4) signups++;
+    if (Math.random() > 0.6) slots++;
+    update();
+  }, 8000);
+
+  window._postSignupStatsHook = function() { signups++; update(); };
+})();
+
+/* ── Password helpers ── */
+function togglePwVis(inputId, btnId) {
+  var inp = document.getElementById(inputId);
+  var btn = document.getElementById(btnId);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (btn) btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    if (btn) btn.textContent = '👁';
+  }
+}
+
+// Real-time password strength validation
+(function wirePasswordValidation() {
+  var pwInp = document.getElementById('password');
+  var pw2Inp = document.getElementById('password-confirm');
+  if (!pwInp) return;
+  var pwTouched = false, pw2Touched = false;
+
+  function validatePw() {
+    var v = pwInp.value;
+    if (!v) { clearFieldError('password'); return; }
+    if (v.length < 8) { showFieldError('password', 'At least 8 characters needed.'); return; }
+    if (!/[A-Z]/.test(v)) { showFieldError('password', 'Add at least one uppercase letter.'); return; }
+    if (!/[0-9]/.test(v)) { showFieldError('password', 'Add at least one number.'); return; }
+    clearFieldError('password');
+    if (pw2Touched) validatePw2();
+  }
+  function validatePw2() {
+    var v2 = pw2Inp.value;
+    if (!v2) { clearFieldError('password-confirm'); return; }
+    if (v2 !== pwInp.value) { showFieldError('password-confirm', 'Passwords do not match.'); return; }
+    clearFieldError('password-confirm');
+  }
+
+  pwInp.addEventListener('blur',  function() { pwTouched = true;  validatePw(); });
+  pwInp.addEventListener('input', function() { if (pwTouched) validatePw(); });
+  pw2Inp.addEventListener('blur',  function() { pw2Touched = true; validatePw2(); });
+  pw2Inp.addEventListener('input', function() { if (pw2Touched) validatePw2(); });
+
+  // Login password field — clear error on input
+  var loginPw = document.getElementById('acct-pw-input');
+  if (loginPw) {
+    loginPw.addEventListener('input', function() {
+      loginPw.style.borderColor = '';
+      loginPw.style.boxShadow = '';
+      var e = document.getElementById('acct-email-error');
+      if (e) e.remove();
+    });
+  }
+})();
+
+/* ── 3 Nearest Centres Checker ── */
+// Proximity data — each centre mapped to its 3 nearest neighbours
+// Source: gov.uk guidance published 17 March 2026
+const NEAREST = {
+  "Barking (Tanner Street)":       ["Goodmayes (London)","Erith (London)","Wanstead (London)"],
+  "Barnet (London)":               ["Hendon (London)","Mill Hill (London)","Borehamwood (London)"],
+  "Belvedere (London)":            ["Erith (London)","Sidcup (London)","Goodmayes (London)"],
+  "Bromley (London)":              ["Sidcup (London)","West Wickham (London)","Hither Green (London)"],
+  "Chingford (London)":            ["Wanstead (London)","Goodmayes (London)","Tottenham"],
+  "Enfield (Innova Business Park)":["Barnet (London)","Tottenham","Chingford (London)"],
+  "Goodmayes (London)":            ["Barking (Tanner Street)","Wanstead (London)","Hornchurch (London)"],
+  "Hendon (London)":               ["Barnet (London)","Mill Hill (London)","Borehamwood (London)"],
+  "Hither Green (London)":         ["Bromley (London)","Sidcup (London)","Morden (London)"],
+  "Hornchurch (London)":           ["Goodmayes (London)","Barking (Tanner Street)","Brentwood (London)"],
+  "Isleworth (Fleming Way)":       ["Chertsey (London)","Tolworth (London)","Pinner (London)"],
+  "Mill Hill (London)":            ["Hendon (London)","Barnet (London)","Borehamwood (London)"],
+  "Mitcham (London)":              ["Morden (London)","Tolworth (London)","Hither Green (London)"],
+  "Morden (London)":               ["Mitcham (London)","Tolworth (London)","Hither Green (London)"],
+  "Pinner (London)":               ["Isleworth (Fleming Way)","Uxbridge (London)","Hendon (London)"],
+  "Sidcup (London)":               ["Bromley (London)","Belvedere (London)","Erith (London)"],
+  "Tolworth (London)":             ["Morden (London)","Mitcham (London)","Chertsey (London)"],
+  "Tottenham":                     ["Chingford (London)","Wanstead (London)","Goodmayes (London)"],
+  "Wanstead (London)":             ["Goodmayes (London)","Chingford (London)","Barking (Tanner Street)"],
+  "West Wickham (London)":         ["Bromley (London)","Sidcup (London)","Hither Green (London)"],
+  "Yeading (London)":              ["Uxbridge (London)","Pinner (London)","Isleworth (Fleming Way)"],
+  "Brighton":                      ["Lancing","Burgess Hill","Crawley"],
+  "Canterbury":                    ["Folkestone","Herne Bay","Thanet"],
+  "Chatham":                       ["Gillingham","Maidstone","Sevenoaks"],
+  "Guildford":                     ["Farnborough","Chertsey (London)","Redhill Aerodrome"],
+  "Maidstone":                     ["Chatham","Gillingham","Sevenoaks"],
+  "Oxford (Cowley)":               ["Aylesbury","Reading","Banbury"],
+  "Portsmouth":                    ["Lee On The Solent","Southampton (Maybush)","Chichester"],
+  "Reading":                       ["Newbury (Hambridge Lane)","Oxford (Cowley)","Basingstoke"],
+  "Southampton (Maybush)":         ["Southampton (Forest Hills)","Lee On The Solent","Portsmouth"],
+  "Birmingham (Garretts Green)":   ["Birmingham (South Yardley)","Birmingham (Shirley)","Birmingham (Kings Heath)"],
+  "Birmingham (Kings Heath)":      ["Birmingham (Shirley)","Birmingham (Kingstanding)","Birmingham (Garretts Green)"],
+  "Birmingham (Kingstanding)":     ["Birmingham (Kings Heath)","Birmingham (Sutton Coldfield)","Wolverhampton"],
+  "Birmingham (Shirley)":          ["Birmingham (Kings Heath)","Birmingham (Garretts Green)","Birmingham (South Yardley)"],
+  "Birmingham (South Yardley)":    ["Birmingham (Garretts Green)","Birmingham (Shirley)","Coventry"],
+  "Coventry":                      ["Birmingham (South Yardley)","Birmingham (Shirley)","Nuneaton"],
+  "Manchester (Bredbury)":         ["Hyde (Manchester)","Sale (Manchester)","West Didsbury (Manchester)"],
+  "West Didsbury (Manchester)":    ["Sale (Manchester)","Manchester (Bredbury)","Chadderton"],
+  "Sale (Manchester)":             ["West Didsbury (Manchester)","Manchester (Bredbury)","Atherton (Manchester)"],
+  "Cheetham Hill (Manchester)":    ["Chadderton","Bury (Manchester)","Bolton (Manchester)"],
+  "Leeds":                         ["Horsforth","Bradford (Heaton)","Bradford (Thornbury)"],
+  "Horsforth":                     ["Leeds","Bradford (Heaton)","Harrogate"],
+  "Sheffield (Handsworth)":        ["Sheffield (Middlewood Road)","Rotherham","Doncaster"],
+  "Sheffield (Middlewood Road)":   ["Sheffield (Handsworth)","Rotherham","Barnsley"],
+  "Edinburgh (Currie)":            ["Edinburgh (Musselburgh)","Livingston","Broxburn"],
+  "Edinburgh (Musselburgh)":       ["Edinburgh (Currie)","Haddington","Broxburn"],
+  "Glasgow (Anniesland)":          ["Glasgow (Baillieston)","Glasgow (Shieldhall)","Dumbarton"],
+  "Glasgow (Baillieston)":         ["Glasgow (Anniesland)","Glasgow (Shieldhall)","East Kilbride"],
+  "Glasgow (Shieldhall)":          ["Glasgow (Anniesland)","Glasgow (Baillieston)","Paisley"],
+  "Cardiff (Llanishen)":           ["Newport (Gwent)","Barry","Bridgend"],
+  "Swansea":                       ["Carmarthen","Llanelli","Bridgend"],
+};
+
+var checkerMode = 'from'; // 'from' = I know current, 'to' = I want specific
+var checkerFiltered = [];
+var checkerHighlight = -1;
+
+function setCheckerMode(mode) {
+  checkerMode = mode;
+  var btnFrom = document.getElementById('checker-mode-from');
+  var btnTo   = document.getElementById('checker-mode-to');
+  var label   = document.getElementById('checker-label');
+  var inp     = document.getElementById('checker-input');
+  if (mode === 'from') {
+    btnFrom.style.background = 'var(--accent-mid)'; btnFrom.style.color = '#fff'; btnFrom.style.borderColor = 'var(--accent-mid)';
+    btnTo.style.background   = 'var(--paper)';      btnTo.style.color   = 'var(--ink)'; btnTo.style.borderColor = 'var(--border2)';
+    label.textContent = 'Where is your driving test currently booked? Start typing to search.';
+    inp.placeholder = 'e.g. Hendon, Birmingham, Reading…';
+  } else {
+    btnTo.style.background   = 'var(--accent-mid)'; btnTo.style.color = '#fff'; btnTo.style.borderColor = 'var(--accent-mid)';
+    btnFrom.style.background = 'var(--paper)';      btnFrom.style.color = 'var(--ink)'; btnFrom.style.borderColor = 'var(--border2)';
+    label.textContent = 'Which centre do you want to move to? Start typing to check if you can get there.';
+    inp.placeholder = 'e.g. Sidcup, Manchester, Edinburgh…';
+  }
+  inp.value = '';
+  document.getElementById('checker-result').style.display = 'none';
+  document.getElementById('checker-dropdown').style.display = 'none';
+}
+
+function checkerSearch(q) {
+  var dropdown = document.getElementById('checker-dropdown');
+  var query = q.trim().toLowerCase();
+  var allNames = Object.keys(NEAREST);
+  if (checkerMode === 'to') {
+    // Show all centres that appear as a nearest neighbour
+    var targets = new Set();
+    Object.values(NEAREST).forEach(function(arr) { arr.forEach(function(c) { targets.add(c); }); });
+    allNames = Array.from(targets);
+  }
+  checkerFiltered = !query ? allNames : allNames.filter(function(c) { return c.toLowerCase().includes(query); });
+  checkerHighlight = -1;
+  if (!checkerFiltered.length) {
+    dropdown.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--ink3);text-align:center">No centres found</div>';
+    dropdown.style.display = 'block';
+    return;
+  }
+  var items = checkerFiltered.slice(0,10);
+  var html = '';
+  for (var i = 0; i < items.length; i++) {
+    var c = items[i];
+    var idx2 = c.toLowerCase().indexOf(query.toLowerCase());
+    var hl = c;
+    if (query && idx2 >= 0) {
+      hl = c.slice(0,idx2) + '<mark style="background:none;color:var(--accent-mid);font-weight:600">' + c.slice(idx2, idx2+query.length) + '</mark>' + c.slice(idx2+query.length);
+    }
+    html += '<div class="checker-item" data-name="' + c.replace(/"/g,'&quot;') + '" style="padding:9px 12px;font-size:13px;color:var(--ink);cursor:pointer">' + hl + '</div>';
+  }
+  dropdown.innerHTML = html;
+  dropdown.querySelectorAll('.checker-item').forEach(function(el) {
+    el.addEventListener('mousedown', function() { checkerSelect(this.getAttribute('data-name')); });
+    el.addEventListener('mouseover', function() { this.style.background = 'var(--accent-light)'; });
+    el.addEventListener('mouseout',  function() { this.style.background = ''; });
+  });
+  dropdown.style.display = 'block';
+}
+
+function checkerKeydown(e) {
+  var dropdown = document.getElementById('checker-dropdown');
+  if (dropdown.style.display === 'none') return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); checkerHighlight = Math.min(checkerHighlight+1, Math.min(checkerFiltered.length,10)-1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); checkerHighlight = Math.max(checkerHighlight-1, 0); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (checkerHighlight >= 0 && checkerFiltered[checkerHighlight]) checkerSelect(checkerFiltered[checkerHighlight]); else if (checkerFiltered.length === 1) checkerSelect(checkerFiltered[0]); }
+  else if (e.key === 'Escape') { dropdown.style.display = 'none'; }
+}
+
+function checkerSelect(centre) {
+  document.getElementById('checker-input').value = centre;
+  document.getElementById('checker-dropdown').style.display = 'none';
+  showCheckerResult(centre);
+}
+
+function showCheckerResult(centre) {
+  var result = document.getElementById('checker-result');
+  result.style.display = 'block';
+
+  if (checkerMode === 'from') {
+    var nearest = NEAREST[centre];
+    if (!nearest) {
+      result.innerHTML = '<div style="padding:1rem;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--rs);font-size:13px;color:var(--amber)">No proximity data available for this centre yet. <a href="https://www.gov.uk/guidance/check-which-driving-test-centres-you-can-move-your-test-to" target="_blank" style="color:var(--accent-mid)">Check on gov.uk →</a></div>';
+      return;
+    }
+    result.innerHTML = '<div style="padding:1rem;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--rs);margin-bottom:.75rem"><div style="font-size:12px;font-weight:500;color:var(--green);margin-bottom:.5rem">From ' + centre + ' you can move to:</div>' +
+      nearest.map(function(c) { return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--green-bd);font-size:13px;color:#1a5a35"><span style="color:var(--green);font-size:16px">✓</span>' + c + '</div>'; }).join('') +
+      '</div><div style="font-size:11px;color:var(--ink3)">Under DVSA rules from 9 June 2026, you can only move your test to one of these 3 centres.</div>';
+  } else {
+    // Find which centres have this centre as a nearest neighbour
+    var canComeFrom = Object.keys(NEAREST).filter(function(c) { return NEAREST[c].includes(centre); });
+    if (!canComeFrom.length) {
+      result.innerHTML = '<div style="padding:1rem;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--rs);font-size:13px;color:var(--amber)">' + centre + ' may not be reachable from many centres under the new rules. <a href="https://www.gov.uk/guidance/check-which-driving-test-centres-you-can-move-your-test-to" target="_blank" style="color:var(--accent-mid)">Verify on gov.uk →</a></div>';
+      return;
+    }
+    result.innerHTML = '<div style="padding:1rem;background:var(--accent-light);border:1px solid rgba(26,63,111,0.2);border-radius:var(--rs);margin-bottom:.75rem"><div style="font-size:12px;font-weight:500;color:var(--accent);margin-bottom:.5rem">These centres can move to ' + centre + ':</div>' +
+      canComeFrom.map(function(c) { return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(26,63,111,0.1);font-size:13px;color:var(--accent)"><span style="font-size:16px">→</span>' + c + '</div>'; }).join('') +
+      '</div><div style="font-size:11px;color:var(--ink3)">Only candidates currently booked at one of the above centres can move to ' + centre + ' from 9 June 2026.</div>';
+  }
+}
+
+// Close checker dropdown on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#checker-input') && !e.target.closest('#checker-dropdown')) {
+    var d = document.getElementById('checker-dropdown');
+    if (d) d.style.display = 'none';
+  }
+});
+</script>
+
+
+<!-- ══════════════════════════════════════
+     COMPLIANCE PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-compliance">
+  <div class="privacy-wrap">
+    <h1>How we comply with DVSA SI 2026/326</h1>
+    <p class="updated">Effective 12 May 2026 · Updated 28 May 2026</p>
+
+    <h2>The new DVSA rules — what changed</h2>
+    <p>From 12 May 2026, new DVSA regulations (SI 2026/326) mean that only the candidate themselves can book, change, cancel, or swap a driving test. It is now against the law for any third party to perform those actions on a learner's behalf.</p>
+    <p>Three specific changes came into force:</p>
+    <table class="privacy-table">
+      <tr><th>Date</th><th>Rule</th></tr>
+      <tr><td>31 March 2026</td><td>Learners can change their booking a maximum of 2 times before losing their fee.</td></tr>
+      <tr><td>12 May 2026</td><td>Only the candidate can book, change, cancel, or swap a driving test. Third-party booking is now illegal.</td></tr>
+      <tr><td>9 June 2026</td><td>Test relocations are limited to one of the 3 nearest test centres to your current booking.</td></tr>
+    </table>
+
+    <h2>What CancelCatch does — and does not do</h2>
+    <table class="privacy-table">
+      <tr><th>What we do</th><th>What we never do</th></tr>
+      <tr><td>Monitor publicly visible DVSA cancellation availability 24/7 across every centre on your list</td><td>Book a driving test on your behalf</td></tr>
+      <tr><td>Detect matching slots in real time — far faster than any manual refresh</td><td>Log in to your DVSA account</td></tr>
+      <tr><td>Send you an instant WhatsApp + email with the slot details and a direct link to gov.uk</td><td>Change, cancel, or swap your booking</td></tr>
+      <tr><td>Filter alerts to only slots matching your preferences (centre, date, time)</td><td>Hold, reserve, or set aside any test slot</td></tr>
+      <tr><td>You open the link, sign in with your own DVSA credentials, and book the slot yourself</td><td>Resell or transfer test slots — this is illegal and we will never facilitate it</td></tr>
+    </table>
+
+    <h2>The 4 steps — who does what</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:1rem 0 1.5rem">
+      <div style="padding:1rem;background:var(--paper);border:1px solid var(--border);border-radius:var(--rs)">
+        <div style="font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Step 1 · Us</div>
+        <div style="font-weight:500;margin-bottom:.3rem">We monitor 24/7</div>
+        <div style="font-size:12px;color:var(--ink3)">Our system watches publicly visible DVSA availability across every centre on your list, every minute of every day.</div>
+      </div>
+      <div style="padding:1rem;background:var(--paper);border:1px solid var(--border);border-radius:var(--rs)">
+        <div style="font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Step 2 · Us</div>
+        <div style="font-weight:500;margin-bottom:.3rem">We detect a match</div>
+        <div style="font-size:12px;color:var(--ink3)">The instant a slot matching your preferences appears, our system detects it — far faster than any manual refresh.</div>
+      </div>
+      <div style="padding:1rem;background:var(--paper);border:1px solid var(--border);border-radius:var(--rs)">
+        <div style="font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Step 3 · Us</div>
+        <div style="font-weight:500;margin-bottom:.3rem">We send you the link</div>
+        <div style="font-size:12px;color:var(--ink3)">We send you a WhatsApp + email with the slot details and a direct link to that slot's page on gov.uk. No searching needed.</div>
+      </div>
+      <div style="padding:1rem;background:#edf7f1;border:1px solid #b8e2ca;border-radius:var(--rs)">
+        <div style="font-size:11px;font-weight:500;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Step 4 · You</div>
+        <div style="font-weight:500;margin-bottom:.3rem;color:var(--green)">You book it yourself</div>
+        <div style="font-size:12px;color:#2d6e47">Open the link. Sign in to gov.uk with your own DVSA credentials. Confirm the slot. Book it. The test is in your name, made by you — fully within the new rules.</div>
+      </div>
+    </div>
+
+    <h2>3 nearest test centres checker</h2>
+    <p>From 9 June 2026, if you want to move your driving test you can only move it to one of your 3 nearest test centres. Use this tool to check which centres you can move to before choosing your preferences.</p>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1.5rem">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+        <button id="checker-mode-from" onclick="setCheckerMode('from')" style="padding:7px 16px;border-radius:var(--rs);border:2px solid var(--accent-mid);background:var(--accent-mid);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer">I know my current centre</button>
+        <button id="checker-mode-to" onclick="setCheckerMode('to')" style="padding:7px 16px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">I want a specific centre</button>
+      </div>
+      <p id="checker-label" style="font-size:13px;color:var(--ink2);margin-bottom:.75rem">Where is your driving test currently booked? Start typing to search.</p>
+      <div style="position:relative">
+        <input type="text" id="checker-input" placeholder="e.g. Hendon, Birmingham, Reading…" oninput="checkerSearch(this.value)" onfocus="checkerSearch(this.value)" onkeydown="checkerKeydown(event)"
+          style="width:100%;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:var(--paper);color:var(--ink)">
+        <div id="checker-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border2);border-radius:var(--rs);box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:300;max-height:220px;overflow-y:auto;margin-top:2px"></div>
+      </div>
+      <div id="checker-result" style="margin-top:1.25rem;display:none"></div>
+    </div>
+
+    <p style="font-size:11px;color:var(--ink3)">Data source: gov.uk — published 17 March 2026. The 3 nearest centres for your booking may change; from 9 June 2026 the official DVSA service will show your live options. <a href="https://www.gov.uk/guidance/check-which-driving-test-centres-you-can-move-your-test-to" target="_blank" style="color:var(--accent-mid)">Check on gov.uk →</a></p>
+
+    <h2>Questions?</h2>
+    <p>If you have any questions about how our service complies with the new DVSA rules, contact us at <a href="mailto:hello@cancelcatch.co.uk" style="color:var(--accent-mid)">hello@cancelcatch.co.uk</a>.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PRIVACY POLICY PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-privacy">
+  <div class="privacy-wrap">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 28 May 2026 · Registered with ICO</p>
+
+    <h2>1. Who we are</h2>
+    <p>CancelCatch ("we", "us", "our") operates the CancelCatch DVSA test slot notification service available at cancelcatch.co.uk. We are registered with the UK Information Commissioner's Office (ICO). For any privacy queries contact us at <a href="mailto:privacy@cancelcatch.co.uk">privacy@cancelcatch.co.uk</a>.</p>
+
+    <h2>2. What personal data we collect</h2>
+    <table class="privacy-table">
+      <tr><th>Data</th><th>Why we collect it</th><th>How long we keep it</th></tr>
+      <tr><td>First and last name</td><td>To personalise your alerts</td><td>Until you delete your account</td></tr>
+      <tr><td>Email address</td><td>To send you slot availability alerts and account notifications</td><td>Until you delete your account</td></tr>
+      <tr><td>WhatsApp number</td><td>To send you WhatsApp alerts (only if you opt in)</td><td>Until you delete your account or remove consent</td></tr>
+      <tr><td>Test centre preferences</td><td>To match you with relevant available slots</td><td>Until you delete your account</td></tr>
+      <tr><td>Date and time preferences</td><td>To filter alerts to slots you actually want</td><td>Until you delete your account</td></tr>
+      <tr><td>Subscription plan and billing info</td><td>To manage your subscription (processed by Stripe — we never see your card details)</td><td>7 years (legal requirement)</td></tr>
+    </table>
+
+    <h2>3. Lawful basis for processing</h2>
+    <p>We process your personal data under the following lawful bases:</p>
+    <ul>
+      <li><strong>Contract</strong> — processing your name and email is necessary to provide the service you signed up for.</li>
+      <li><strong>Consent</strong> — your WhatsApp number is only stored and used with your explicit consent, given at signup. You can withdraw this consent at any time from your account page.</li>
+      <li><strong>Legitimate interests</strong> — we may use anonymised, aggregated data to improve the service.</li>
+    </ul>
+
+    <h2>4. Who we share your data with</h2>
+    <p>We only share your data with the third-party services required to operate CancelCatch:</p>
+    <ul>
+      <li><strong>Supabase</strong> — our database provider (servers in the EU). <a href="https://supabase.com/privacy" target="_blank">Privacy policy →</a></li>
+      <li><strong>Twilio</strong> — used to send WhatsApp notifications. <a href="https://www.twilio.com/en-us/legal/privacy" target="_blank">Privacy policy →</a></li>
+      <li><strong>SendGrid (Twilio)</strong> — used to send email notifications. <a href="https://www.twilio.com/en-us/legal/privacy" target="_blank">Privacy policy →</a></li>
+      <li><strong>Stripe</strong> — payment processing. We never see or store your card details. <a href="https://stripe.com/gb/privacy" target="_blank">Privacy policy →</a></li>
+    </ul>
+    <p>We do not sell, rent, or trade your personal data with any third party.</p>
+
+    <h2>5. Your rights</h2>
+    <p>Under UK GDPR you have the following rights:</p>
+    <ul>
+      <li><strong>Right of access</strong> — request a copy of the data we hold about you.</li>
+      <li><strong>Right to rectification</strong> — correct inaccurate data from your account page.</li>
+      <li><strong>Right to erasure</strong> — delete your account and all associated data from your account page at any time.</li>
+      <li><strong>Right to withdraw consent</strong> — remove your WhatsApp number and opt out of WhatsApp alerts at any time from your account page.</li>
+      <li><strong>Right to data portability</strong> — request an export of your data by emailing <a href="mailto:privacy@cancelcatch.co.uk">privacy@cancelcatch.co.uk</a>.</li>
+      <li><strong>Right to complain</strong> — if you believe we have mishandled your data, you can complain to the <a href="https://ico.org.uk/make-a-complaint/" target="_blank">ICO</a>.</li>
+    </ul>
+
+    <h2>6. Data security</h2>
+    <p>All personal data is stored encrypted at rest in our Supabase database. Access is restricted to authorised personnel only. In the event of a data breach we will notify affected users and the ICO within 72 hours as required by UK GDPR.</p>
+
+    <h2>7. Cookies</h2>
+    <p>We use only a single session cookie to keep you logged in to your account. We do not use tracking cookies or advertising cookies.</p>
+
+    <h2>8. Changes to this policy</h2>
+    <p>We may update this policy from time to time. We will notify you by email of any significant changes. Continued use of the service after notification constitutes acceptance of the updated policy.</p>
+
+    <h2>9. Refund & Cancellation Policy</h2>
+    <p>We want you to feel confident subscribing to CancelCatch. Here is our policy:</p>
+    <table class="privacy-table">
+      <tr><th>Scenario</th><th>Outcome</th></tr>
+      <tr><td>You cancel before your 7-day free trial ends</td><td>You are never charged. Full stop.</td></tr>
+      <tr><td>You are charged but have not yet received your first alert</td><td><strong>Full refund — no questions asked.</strong> Contact us any time before your first alert is sent.</td></tr>
+      <tr><td>You received your first alert (service fulfilled)</td><td>No refund — the service was delivered. You can cancel to stop future billing.</td></tr>
+      <tr><td>A technical failure on our side prevented the service from working</td><td>Full refund for the affected billing period, issued within 5 working days.</td></tr>
+      <tr><td>You forgot to cancel and were charged for a new month</td><td>We will refund the most recent charge if you contact us within 48 hours and have not received any alerts in that period.</td></tr>
+    </table>
+    <p>To request a refund, email <a href="mailto:billing@cancelcatch.co.uk">billing@cancelcatch.co.uk</a> with your registered email address and reason. We aim to respond within 2 working days.</p>
+    <p><strong>Cooling off period:</strong> Under the UK Consumer Rights Act 2015, you normally have 14 days to cancel a digital service. By starting your free trial and using the CancelCatch service, you agree that the service begins immediately and acknowledge that your right to a 14-day cooling off period is waived once your paid subscription commences and alerts have been delivered to you.</p>
+
+    <h2>10. Contact</h2>
+    <p>For privacy-related queries: <a href="mailto:privacy@cancelcatch.co.uk">privacy@cancelcatch.co.uk</a><br>
+    For billing and refund queries: <a href="mailto:billing@cancelcatch.co.uk">billing@cancelcatch.co.uk</a><br>
+    For general enquiries: <a href="mailto:hello@cancelcatch.co.uk">hello@cancelcatch.co.uk</a></p>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand"><span>Cancel</span>Catch</div>
+      <div class="footer-copy">© 2026 CancelCatch. Registered with the ICO. Not affiliated with DVSA.</div>
+    </div>
+    <div class="footer-links">
+      <a href="#" onclick="showPage('privacy',document.querySelectorAll('.nav-tab')[2]);return false;">Privacy Policy</a>
+      <a href="mailto:privacy@cancelcatch.co.uk">Contact</a>
+      <a href="https://ico.org.uk" target="_blank">ICO</a>
+      <a href="https://www.gov.uk/book-driving-test" target="_blank">Book on DVSA</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
