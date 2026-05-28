@@ -1274,7 +1274,7 @@ function fmtExp(el) {
 /* ── FORM SUBMIT ── */
 const subscribers = JSON.parse(localStorage.getItem('cc_subs') || '[]');
 
-function submitForm() {
+async function submitForm() {
   const fname = document.getElementById('fname').value.trim();
   const email = document.getElementById('email').value.trim();
   const wa = document.getElementById('whatsapp').value.trim();
@@ -1337,9 +1337,49 @@ function submitForm() {
     alertsSent: 0,
     active: true,
     status: currentPlan === 'trial' ? 'trial' : 'active',
-    mrr: currentPlan === 'trial' ? 0 : currentPlan === 'basic' ? 1.99 : currentPlan === 'standard' ? 3.99 : 4.99,
+    mrr: currentPlan === 'trial' ? 0 : currentPlan === 'basic' ? 1.99 : 3.99,
     createdAt: new Date().toLocaleDateString('en-GB')
   };
+
+  // Save to Supabase via API
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fname: record.fname,
+        lname: record.lname,
+        email: record.email,
+        whatsapp: record.whatsapp,
+        password: pw,
+        centres: record.centres,
+        dateFrom: record.dateFrom,
+        dateTo: record.dateTo,
+        timePref: record.timePref,
+        notifEmail: record.notifEmail,
+        notifWa: record.notifWa,
+        plan: record.plan
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      showToast(data.error || 'Something went wrong. Please try again.');
+      btn.textContent = currentPlan === 'trial' ? 'Start free trial →' : 'Start 7-day trial →';
+      btn.disabled = false;
+      return;
+    }
+  } catch (err) {
+    showToast('Network error. Please check your connection and try again.');
+    btn.textContent = currentPlan === 'trial' ? 'Start free trial →' : 'Start 7-day trial →';
+    btn.disabled = false;
+    return;
+  }
+
+  // Also save locally for account page
   subscribers.push(record);
   localStorage.setItem('cc_subs', JSON.stringify(subscribers));
 
