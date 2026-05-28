@@ -1,0 +1,42 @@
+# .github/workflows/check-slots.yml
+# Free cron job using GitHub Actions — runs every 15 minutes
+# No Railway needed — saves £5/month during testing
+
+name: Check DVSA Slots
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every 15 minutes
+  workflow_dispatch:           # also allows manual trigger from GitHub UI
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: email-setup/package.json
+
+      - name: Install dependencies
+        working-directory: email-setup
+        run: npm ci
+
+      - name: Run slot checker
+        working-directory: email-setup
+        env:
+          SUPABASE_URL:          ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY:  ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SENDGRID_KEY:          ${{ secrets.SENDGRID_KEY }}
+          TWILIO_SID:            ${{ secrets.TWILIO_SID }}
+          TWILIO_TOKEN:          ${{ secrets.TWILIO_TOKEN }}
+          TWILIO_WA_NUMBER:      ${{ secrets.TWILIO_WA_NUMBER }}
+          BASE_URL:              ${{ secrets.BASE_URL }}
+        run: node cron.js --once   # --once flag runs once then exits
