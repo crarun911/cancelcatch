@@ -1,51 +1,117 @@
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
+// dvsa-scraper.js
+// Uses ScraperAPI to bypass DVSA bot protection
+// ScraperAPI handles proxies and JS rendering automatically
+
+const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
+
+function scraperUrl(targetUrl) {
+  return `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&country_code=gb`;
+}
+
+function randomDelay(min = 1000, max = 3000) {
+  return new Promise(resolve =>
+    setTimeout(resolve, Math.floor(Math.random() * (max - min) + min))
+  );
+}
 
 async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
-  let browser;
   try {
-    console.log(`    Launching browser for ${centreName}...`);
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-      ]
-    });
+    console.log(`    Checking DVSA for ${centreName} via ScraperAPI...`);
 
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800 });
+    if (!SCRAPER_API_KEY) {
+      console.error('    SCRAPER_API_KEY not set!');
+      return [];
+    }
 
-    // Try the availability page directly
-    const url = 'https://driverpracticaltest.dvsa.gov.uk/availability';
-    console.log(`    Navigating to ${url}...`);
+    // Step 1 — Load the DVSA booking start page
+    const startUrl = 'https://driverpracticaltest.dvsa.gov.uk/application';
+    console.log(`    Fetching: ${startUrl}`);
 
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',
+    const response = await fetch(scraperUrl(startUrl), {
       timeout: 60000
     });
 
-    // Wait for challenge to resolve
-    await new Promise(r => setTimeout(r, 5000));
+    console.log(`    ScraperAPI status: ${response.status}`);
 
-    const title = await page.title();
-    const content = await page.content();
-    console.log(`    Title: ${title}`);
-    console.log(`    Length: ${content.length}`);
-    console.log(`    Snippet: ${content.slice(0, 400)}`);
+    if (!response.ok) {
+      console.log(`    ScraperAPI error: ${response.status}`);
+      return [];
+    }
 
-    await browser.close();
-    return [];
+    const html = await response.text();
+    console.log(`    Page length: ${html.length} chars`);
+    console.log(`    Snippet: ${html.slice(0, 400)}`);
+
+    // Check if we got past bot protection
+    if (html.includes('Incapsula') || html.includes('NOINDEX, NOFOLLOW')) {
+      console.log(`    Still blocked by bot protection`);
+      return [];
+    }
+
+    // Step 2 — Look for available slots in the page
+    // DVSA shows a calendar with available dates
+    const slots = parseSlots(html, dateFrom, dateTo, timePref);
+    console.log(`    Found ${slots.length} matching slots`);
+    return slots;
 
   } catch (err) {
-    if (browser) await browser.close();
-    console.error(`    Error: ${err.message}`);
+    console.error(`    ScraperAPI error: ${err.message}`);
     return [];
   }
+}
+
+function parseSlots(html, dateFrom, dateTo, timePref) {
+  const slots = [];
+
+  try {
+    // Look for date patterns in the HTML
+    // DVSA uses various formats — we try multiple patterns
+    
+    // Pattern 1: JSON data embedded in page
+    const jsonMatch = html.match(/availableSlots['":\s]+(\[.*?\])/s);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[1]);
+      data.forEach(slot => {
+        if (slot.date || slot.testDate) {
+          slots.push({
+            date: slot.date || slot.testDate,
+            time: slot.time || slot.startTime || '09:00'
+          });
+        }
+      });
+    }
+
+    // Pattern 2: Date links in calendar
+    const dateRegex = /href="[^"]*(\d{4}-\d{2}-\d{2})[^"]*"/g;
+    let match;
+    while ((match = dateRegex.exec(html)) !== null) {
+      const date = match[1];
+      if (date >= dateFrom && date <= dateTo) {
+        slots.push({ date, time: '09:00' });
+      }
+    }
+
+    // Pattern 3: Data attributes
+    const dataDateRegex = /data-date="(\d{4}-\d{2}-\d{2})"/g;
+    while ((match = dataDateRegex.exec(html)) !== null) {
+      const date = match[1];
+      if (date >= dateFrom && date <= dateTo) {
+        slots.push({ date, time: '09:00' });
+      }
+    }
+
+  } catch (err) {
+    console.log(`    Parse error: ${err.message}`);
+  }
+
+  // Deduplicate
+  const seen = new Set();
+  return slots.filter(s => {
+    const key = s.date + s.time;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 module.exports = { checkDVSA };
