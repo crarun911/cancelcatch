@@ -2,8 +2,9 @@
 // Checks DVSA availability using their internal API
 // IMPORTANT: Only reads publicly visible availability — never logs in or books
 
-const puppeteer = require('puppeteer');
-
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 // Random delay to mimic human behaviour
 function randomDelay(min = 1000, max = 3000) {
   return new Promise(resolve =>
