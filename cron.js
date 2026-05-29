@@ -65,7 +65,7 @@ async function sendEmail(subscriber, centre, slot) {
 
   await sgMail.send({
     to:      subscriber.email,
-    from:    { email: 'alerts@cancelcatch.co.uk', name: 'CancelCatch' },
+    from:    { email: 'tranqlo.dev@gmail.com', name: 'CancelCatch' },
     replyTo: 'hello@cancelcatch.co.uk',
     subject: `✅ Slot available — ${centre} on ${formatDate(slot.date)}`,
     html,
