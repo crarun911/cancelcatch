@@ -3,6 +3,7 @@
 // npm install @supabase/supabase-js @sendgrid/mail twilio node-cron fs
 
 require('dotenv').config();
+const { checkDVSA: checkDVSAReal } = require('./dvsa-scraper');
 const { createClient } = require('@supabase/supabase-js');
 const sgMail            = require('@sendgrid/mail');
 const twilio            = require('twilio');
@@ -41,8 +42,7 @@ async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
     // await browser.close();
     //
     // For now returns empty — replace with real implementation
-    return [{ date: '2026-07-15', time: '10:14' }];
-
+    return [];
   } catch (err) {
     console.error(`DVSA check failed for ${centreName}:`, err.message);
     return [];
@@ -65,7 +65,7 @@ async function sendEmail(subscriber, centre, slot) {
 
   await sgMail.send({
     to:      subscriber.email,
-    from:    { email: 'tranqlo.dev@gmail.com', name: 'CancelCatch' },
+    from:    { email: 'alerts@cancelcatch.co.uk', name: 'CancelCatch' },
     replyTo: 'hello@cancelcatch.co.uk',
     subject: `✅ Slot available — ${centre} on ${formatDate(slot.date)}`,
     html,
@@ -182,11 +182,8 @@ async function run() {
           await logAlert(sub.id, centre, slot, 'whatsapp');
         }
       } catch (err) {
-    console.error(`  Failed to notify ${sub.email}:`, err.message);
-    if (err.response) {
-      console.error('  SendGrid error details:', JSON.stringify(err.response.body));
-    }
-  }
+        console.error(`  Failed to notify ${sub.email}:`, err.message);
+      }
     }
   }
 
