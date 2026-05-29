@@ -41,7 +41,8 @@ async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
     // await browser.close();
     //
     // For now returns empty — replace with real implementation
-    return [];
+    return [{ date: '2026-07-15', time: '10:14' }];
+
   } catch (err) {
     console.error(`DVSA check failed for ${centreName}:`, err.message);
     return [];
