@@ -32,69 +32,51 @@ function randomDelay(min = 2000, max = 5000) {
 async function checkDVSASlots(centreName, dateFrom, dateTo) {
   let browser;
   try {
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-        '--window-size=1920,1080',
-        // Rotate user agents to avoid detection
-        `--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36`
-      ]
+    const centreId = CENTRE_IDS[centreName];
+    console.log(`    Centre ID: ${centreId}`);
+
+    await randomDelay(1000, 3000);
+
+    const url = `https://driverpracticaltest.dvsa.gov.uk/api/v1/slots?` +
+      `testCentreName=${encodeURIComponent(centreName)}` +
+      `&testDate=${dateFrom}` +
+      `&endDate=${dateTo}` +
+      `&testType=car`;
+    
+    console.log(`    Calling URL: ${url}`);
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://driverpracticaltest.dvsa.gov.uk/',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
     });
 
-    const page = await browser.newPage();
-
-    // Set realistic viewport
-    await page.setViewport({ width: 1920, height: 1080 });
-
-    // Set extra headers to look like a real browser
-    await page.setExtraHTTPHeaders({
-      'Accept-Language': 'en-GB,en;q=0.9',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-    });
-
-    console.log(`    Checking DVSA for ${centreName}...`);
-
-    // Navigate to DVSA booking page
-    await page.goto('https://driverpracticaltest.dvsa.gov.uk/application', {
-      waitUntil: 'networkidle2',
-      timeout: 30000
-    });
-
-    // Random delay to mimic reading the page
-    await randomDelay(2000, 4000);
-
-    // Look for available slots in the page content
-    // DVSA shows availability as a calendar — we read it
-    const slots = await page.evaluate((dateFrom, dateTo) => {
-      const available = [];
-      // Look for available date cells in the calendar
-      const availableDays = document.querySelectorAll(
-        '.available-day, .slot-available, [data-available="true"], .test-date-available'
-      );
-      availableDays.forEach(day => {
-        const dateText = day.getAttribute('data-date') ||
-                        day.querySelector('[data-date]')?.getAttribute('data-date') ||
-                        day.textContent.trim();
-        if (dateText) {
-          available.push({ date: dateText, time: '09:00' });
-        }
-      });
-      return available;
-    }, dateFrom, dateTo);
-
-    await browser.close();
-
-    console.log(`    Found ${slots.length} slots at ${centreName}`);
-    return slots;
+    console.log(`    API status: ${response.status}`);
+    const text = await response.text();
+    console.log(`    API response: ${text.slice(0, 300)}`);
+    
+    if (!response.ok) return [];
+    
+    const data = JSON.parse(text);
+    if (Array.isArray(data)) {
+      return data.map(slot => ({
+        date: slot.date || slot.testDate || slot.slotDate,
+        time: slot.time || slot.startTime || slot.slotTime || '09:00'
+      })).filter(s => s.date);
+    }
+    if (data.slots && Array.isArray(data.slots)) {
+      return data.slots.map(slot => ({
+        date: slot.date || slot.testDate,
+        time: slot.time || slot.startTime || '09:00'
+      })).filter(s => s.date);
+    }
+    return [];
 
   } catch (err) {
-    if (browser) await browser.close();
-    console.error(`    Scraper error for ${centreName}:`, err.message);
+    console.error(`    API error for ${centreName}:`, err.message);
     return [];
   }
 }
