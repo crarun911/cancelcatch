@@ -34,7 +34,9 @@ async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
     console.log(`    ScraperAPI status: ${response.status}`);
 
     if (!response.ok) {
+      const errorText = await response.text();
       console.log(`    ScraperAPI error: ${response.status}`);
+      console.log(`    Error details: ${errorText.slice(0, 300)}`);
       return [];
     }
 
