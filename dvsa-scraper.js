@@ -5,7 +5,7 @@
 const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
 
 function scraperUrl(targetUrl) {
-  return `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&country_code=gb`;
+return `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&country_code=gb&premium=true`;
 }
 
 function randomDelay(min = 1000, max = 3000) {
