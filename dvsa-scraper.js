@@ -20,7 +20,7 @@ async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
     const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || null;
 
     browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
       executablePath: executablePath || undefined,
       args: [
         '--no-sandbox',
