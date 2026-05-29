@@ -130,10 +130,13 @@ async function checkDVSAApi(centreName, dateFrom, dateTo) {
 
     if (!response.ok) {
       console.log(`    API returned ${response.status} for ${centreName}`);
+      const text = await response.text();
+      console.log(`    Response body:`, text.slice(0, 200));
       return [];
     }
-
-    const data = await response.json();
+    const text = await response.text();
+    console.log(`    Raw API response:`, text.slice(0, 300));
+    const data = JSON.parse(text);
 
     // Parse the response — structure varies
     if (Array.isArray(data)) {
