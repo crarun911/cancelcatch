@@ -1,17 +1,18 @@
 // CancelCatch — cron.js
-// Deploy to Railway. Runs continuously 24/7.
-// npm install @supabase/supabase-js @sendgrid/mail twilio node-cron fs
+// Deploy to Railway or run via GitHub Actions
+// node cron.js        → runs continuously every 15 mins
+// node cron.js --once → runs once then exits (GitHub Actions)
 
 require('dotenv').config();
-const { checkDVSA: checkDVSAReal } = require('./dvsa-scraper');
+const { checkDVSA }  = require('./dvsa-scraper');
 const { createClient } = require('@supabase/supabase-js');
-const sgMail            = require('@sendgrid/mail');
-const twilio            = require('twilio');
-const cron              = require('node-cron');
-const fs                = require('fs');
-const path              = require('path');
+const sgMail           = require('@sendgrid/mail');
+const twilio           = require('twilio');
+const cron             = require('node-cron');
+const fs               = require('fs');
+const path             = require('path');
 
-// ── Clients ──────────────────────────────────────────────────────────────────
+// ── Clients ───────────────────────────────────────────────────────────────────
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
@@ -24,54 +25,26 @@ const EMAIL_TEMPLATE = fs.readFileSync(
   path.join(__dirname, 'email-templates/slot-alert.html'), 'utf8'
 );
 
-// ── DVSA Slot Checker ─────────────────────────────────────────────────────────
-// NOTE: DVSA does not have a public API. You need to either:
-// A) Use a headless browser (Puppeteer) to scrape gov.uk/book-driving-test
-// B) Use an unofficial community API if available
-// This example shows the structure — replace checkDVSA() with your actual scraper.
-
-async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
-  try {
-    // TODO: Replace with your actual DVSA scraper
-    // Example using Puppeteer (install separately: npm install puppeteer):
-    //
-    // const browser = await puppeteer.launch({ headless: true });
-    // const page = await browser.newPage();
-    // await page.goto('https://www.gov.uk/book-driving-test');
-    // ... navigate to centre, check availability ...
-    // await browser.close();
-    //
-    // For now returns empty — replace with real implementation
-    return [];
-  } catch (err) {
-    console.error(`DVSA check failed for ${centreName}:`, err.message);
-    return [];
-  }
-}
-
 // ── Send Email ────────────────────────────────────────────────────────────────
 async function sendEmail(subscriber, centre, slot) {
-  const bookingLink = `https://www.gov.uk/book-driving-test`;
-
-  // Fill template placeholders
+  const bookingLink = 'https://www.gov.uk/book-driving-test';
   const html = EMAIL_TEMPLATE
-    .replace(/{{FIRST_NAME}}/g,         subscriber.fname)
-    .replace(/{{CENTRE_NAME}}/g,        centre)
-    .replace(/{{SLOT_DATE}}/g,          formatDate(slot.date))
-    .replace(/{{SLOT_TIME}}/g,          slot.time || 'Morning')
-    .replace(/{{BOOKING_LINK}}/g,       bookingLink)
-    .replace(/{{PLAN_NAME}}/g,          subscriber.plan === 'basic' ? 'Basic' : 'Standard')
-    .replace(/{{UNSUBSCRIBE_TOKEN}}/g,  subscriber.id);
+    .replace(/{{FIRST_NAME}}/g,        subscriber.fname)
+    .replace(/{{CENTRE_NAME}}/g,       centre)
+    .replace(/{{SLOT_DATE}}/g,         formatDate(slot.date))
+    .replace(/{{SLOT_TIME}}/g,         slot.time || 'Morning')
+    .replace(/{{BOOKING_LINK}}/g,      bookingLink)
+    .replace(/{{PLAN_NAME}}/g,         subscriber.plan === 'basic' ? 'Basic' : 'Standard')
+    .replace(/{{UNSUBSCRIBE_TOKEN}}/g, subscriber.id);
 
   await sgMail.send({
     to:      subscriber.email,
-    from:    { email: 'alerts@cancelcatch.co.uk', name: 'CancelCatch' },
-    replyTo: 'hello@cancelcatch.co.uk',
-    subject: `✅ Slot available — ${centre} on ${formatDate(slot.date)}`,
+    from:    { email: 'crarun911@gmail.com', name: 'CancelCatch' },
+    replyTo: 'crarun911@gmail.com',
+    subject: `Test slot found at ${centre} — ${formatDate(slot.date)}`,
     html,
-    text: `Hi ${subscriber.fname}, a slot is available at ${centre} on ${formatDate(slot.date)} at ${slot.time}. Book now: ${bookingLink}`,
+    text: `Hi ${subscriber.fname}, a slot is available at ${centre} on ${formatDate(slot.date)} at ${slot.time || 'Morning'}. Book now: ${bookingLink}`,
   });
-
   console.log(`📧 Email sent to ${subscriber.email} — ${centre} ${slot.date}`);
 }
 
@@ -91,7 +64,6 @@ async function sendWhatsApp(subscriber, centre, slot) {
     to:   `whatsapp:${subscriber.whatsapp}`,
     body: msg,
   });
-
   console.log(`💬 WhatsApp sent to ${subscriber.whatsapp} — ${centre} ${slot.date}`);
 }
 
@@ -100,13 +72,13 @@ async function logAlert(subscriberId, centre, slot, channel) {
   await supabase.from('alerts_log').insert({
     subscriber_id: subscriberId,
     centre,
-    slot_date:  slot.date,
-    slot_time:  slot.time,
+    slot_date: slot.date,
+    slot_time: slot.time,
     channel,
   });
   await supabase
     .from('subscribers')
-    .update({ alerts_sent: supabase.rpc('increment', { x: 1 }), last_alerted_at: new Date() })
+    .update({ last_alerted_at: new Date() })
     .eq('id', subscriberId);
 }
 
@@ -118,7 +90,6 @@ async function expireTrials() {
     .eq('plan', 'trial')
     .eq('active', true)
     .lt('trial_ends_at', new Date().toISOString());
-
   if (!error) console.log('🕐 Expired old trials');
 }
 
@@ -126,10 +97,8 @@ async function expireTrials() {
 async function run() {
   console.log(`\n🔍 CancelCatch check started at ${new Date().toLocaleTimeString('en-GB')}`);
 
-  // Expire trials first
   await expireTrials();
 
-  // Fetch all active paid subscribers (basic + standard)
   const { data: subscribers, error } = await supabase
     .from('subscribers')
     .select('*')
@@ -139,7 +108,7 @@ async function run() {
   if (error) { console.error('DB error:', error.message); return; }
   console.log(`👥 Checking ${subscribers.length} active subscribers`);
 
-  // Deduplicate centres to avoid checking the same centre multiple times
+  // Deduplicate centres
   const centreMap = {};
   for (const sub of subscribers) {
     for (const centre of sub.centres) {
@@ -152,9 +121,8 @@ async function run() {
   for (const [centre, subs] of Object.entries(centreMap)) {
     console.log(`  Checking ${centre}...`);
 
-    // Use the broadest date range across all subscribers for this centre
     const dateFrom = subs.reduce((min, s) => s.date_from < min ? s.date_from : min, subs[0].date_from);
-    const dateTo   = subs.reduce((max, s) => s.date_to > max ? s.date_to : max, subs[0].date_to);
+    const dateTo   = subs.reduce((max, s) => s.date_to   > max ? s.date_to   : max, subs[0].date_to);
 
     const slots = await checkDVSA(centre, dateFrom, dateTo, 'any');
 
@@ -165,12 +133,10 @@ async function run() {
 
     console.log(`    ✓ ${slots.length} slot(s) found at ${centre}!`);
 
-    // Notify each matching subscriber
     for (const sub of subs) {
       const matching = slots.filter(slot => slotMatchesPrefs(slot, sub));
       if (!matching.length) continue;
-
-      const slot = matching[0]; // Send first matching slot
+      const slot = matching[0];
 
       try {
         if (sub.notif_email) {
@@ -183,6 +149,7 @@ async function run() {
         }
       } catch (err) {
         console.error(`  Failed to notify ${sub.email}:`, err.message);
+        if (err.response) console.error('  Details:', JSON.stringify(err.response.body));
       }
     }
   }
@@ -192,32 +159,25 @@ async function run() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function slotMatchesPrefs(slot, sub) {
-  // Date range check
   if (sub.date_from && slot.date < sub.date_from) return false;
   if (sub.date_to   && slot.date > sub.date_to)   return false;
-
-  // Time of day check
   if (sub.time_pref && sub.time_pref !== 'any') {
     const hour = parseInt(slot.time?.split(':')[0] || '10');
     if (sub.time_pref === 'morning'   && hour >= 12) return false;
     if (sub.time_pref === 'afternoon' && (hour < 12 || hour >= 17)) return false;
     if (sub.time_pref === 'evening'   && hour < 17)  return false;
   }
-
   return true;
 }
 
 function formatDate(dateStr) {
   if (!dateStr) return 'TBC';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
 }
 
 // ── Schedule ──────────────────────────────────────────────────────────────────
-// Two modes:
-// node cron.js         → runs continuously every 15 mins (Railway ~£5/mo)
-// node cron.js --once  → runs once then exits (GitHub Actions — FREE)
-
 const runOnce = process.argv.includes('--once');
 
 if (runOnce) {
