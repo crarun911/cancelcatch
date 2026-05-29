@@ -65,7 +65,7 @@ async function sendEmail(subscriber, centre, slot) {
 
   await sgMail.send({
     to:      subscriber.email,
-    from:    { email: 'crarun911@gmail.com', name: 'CancelCatch' },
+    from:    { email: 'tranqlo.dev@gmail.com', name: 'CancelCatch' },
     replyTo: 'hello@cancelcatch.co.uk',
     subject: `✅ Slot available — ${centre} on ${formatDate(slot.date)}`,
     html,
@@ -182,8 +182,11 @@ async function run() {
           await logAlert(sub.id, centre, slot, 'whatsapp');
         }
       } catch (err) {
-        console.error(`  Failed to notify ${sub.email}:`, err.message);
-      }
+    console.error(`  Failed to notify ${sub.email}:`, err.message);
+    if (err.response) {
+      console.error('  SendGrid error details:', JSON.stringify(err.response.body));
+    }
+  }
     }
   }
 
