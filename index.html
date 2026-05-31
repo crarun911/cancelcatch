@@ -24,11 +24,11 @@
 body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6}
 
 /* ── NAV ── */
-nav{position:sticky;top:0;z-index:200;background:rgba(250,248,245,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+nav{position:sticky;top:0;z-index:200;background:rgba(250,248,245,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;min-height:52px;flex-wrap:wrap;gap:4px}
 .nav-brand{font-family:'Fraunces',serif;font-size:22px;letter-spacing:-.02em;color:var(--ink);text-decoration:none;font-weight:600}
 .nav-brand span{color:var(--accent2)}
-.nav-tabs{display:flex;gap:3px}
-.nav-tab{padding:7px 14px;border-radius:20px;border:none;background:transparent;color:var(--ink3);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;font-weight:400}
+.nav-tabs{display:flex;gap:2px;flex-wrap:wrap}
+.nav-tab{padding:6px 11px;border-radius:20px;border:none;background:transparent;color:var(--ink3);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;font-weight:400;white-space:nowrap}
 .nav-tab:hover{background:rgba(0,0,0,0.05);color:var(--ink)}
 .nav-tab.active{background:var(--ink);color:#fff}
 .page{display:none}.page.active{display:block}
@@ -306,11 +306,15 @@ nav{position:sticky;top:0;z-index:200;background:rgba(250,248,245,0.94);backdrop
 .notify-toast.show{opacity:1}
 
 @media(max-width:600px){
+  nav{padding:6px 10px;gap:4px}
+  .nav-brand{font-size:18px}
+  .nav-tabs{gap:2px}
+  .nav-tab{padding:5px 8px;font-size:11px}
+  .compliance-banner{font-size:11px;padding:7px 1rem}
   .form-card{padding:1.25rem}
   .hero-wrap{padding:2.5rem 1rem 1.5rem}
   .notify-opts{grid-template-columns:1fr}
   .plan-strip{flex-direction:column;padding:0 1.5rem}
-  .nav-tabs .nav-tab:not(.active){display:none}
   .phc-right{align-items:flex-start}
 }
 
@@ -1220,6 +1224,16 @@ nav{position:sticky;top:0;z-index:200;background:rgba(250,248,245,0.94);backdrop
 <script>
 /* ── PAGE ROUTING ── */
 function showPage(id, btn) {
+  // If going to account page and not logged in — show login gate
+  if (id === 'account') {
+    if (!acctUser) {
+      document.getElementById('acct-gate').style.display = 'block';
+      document.getElementById('acct-content').style.display = 'none';
+    } else {
+      document.getElementById('acct-gate').style.display = 'none';
+      document.getElementById('acct-content').style.display = 'block';
+    }
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
@@ -1958,8 +1972,21 @@ function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
   const savedEmail = localStorage.getItem('cc_session_email');
   if (savedEmail) {
     const user = getSubs().find(s => s.email.toLowerCase()===savedEmail);
-    if (user) { acctUser=user; document.getElementById('acct-nav-tab').textContent='My account'; }
-    else localStorage.removeItem('cc_session_email');
+    if (user) {
+      acctUser = user;
+      document.getElementById('acct-nav-tab').textContent = 'My account';
+      // Keep login gate hidden if already logged in
+      document.getElementById('acct-gate').style.display = 'none';
+      document.getElementById('acct-content').style.display = 'block';
+    } else {
+      localStorage.removeItem('cc_session_email');
+      document.getElementById('acct-gate').style.display = 'block';
+      document.getElementById('acct-content').style.display = 'none';
+    }
+  } else {
+    // Not logged in — show login screen
+    document.getElementById('acct-gate').style.display = 'block';
+    document.getElementById('acct-content').style.display = 'none';
   }
 })();
 
