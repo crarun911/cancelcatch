@@ -37,8 +37,8 @@ async function sendEmail(subscriber, country, city, slot) {
 
   await sgMail.send({
     to:      subscriber.email,
-    from:    { email: 'alerts@cancelcatch.co.uk', name: 'CancelCatch' },
-    replyTo: 'alerts@cancelcatch.co.uk',
+    from:    { email: 'crarun911@gmail.com', name: 'CancelCatch' },
+    replyTo: 'crarun911@gmail.com',
     subject: `✅ Visa slot found — ${country} in ${city} on ${formatDate(slot.date)}`,
     html,
     text: `Hi ${subscriber.fname}, a visa appointment slot is available for ${country} in ${city} on ${formatDate(slot.date)}. Book now: ${bookingLink}`,
@@ -146,29 +146,10 @@ async function logAlert(subscriberId, country, city, slot, channel) {
 async function run() {
   console.log(`\n🔍 CancelCatch scan started at ${new Date().toLocaleTimeString('en-GB')}`);
 
-  // Get all active subscribers to know which countries/cities to check
-  const { data: subscribers, error } = await supabase
-    .from('subscribers')
-    .select('centres, cities')
-    .eq('active', true)
-    .in('plan', ['email', 'full']);
+  // ── Step 1: Fetch ALL slots from Telegram for ALL cities ──
+  // This powers the public live tracker — runs regardless of subscribers
 
-  if (!subscribers?.length) {
-    console.log('👥 No active subscribers — skipping scan');
-    return;
-  }
-
-  // Deduplicate country+city combos
-  const combos = new Set();
-  subscribers.forEach(sub => {
-    const countries = sub.centres || [];
-    const cities    = sub.cities   || ['London'];
-    countries.forEach(country => {
-      cities.forEach(city => combos.add(`${country}|||${city}`));
-    });
-  });
-
-  // Get ALL available slots from Telegram channel in one go
+  // ── Fetch ALL slots from Telegram ──
   console.log('\n📡 Fetching slot data from Telegram channel...');
   const allSlots = await getAvailableSlots();
   console.log(`\n🌍 Found ${allSlots.length} total slots across all countries`);
@@ -181,21 +162,54 @@ async function run() {
     slotMap[key].push(slot);
   });
 
-  // Update cache and notify for each subscribed combo
-  for (const combo of combos) {
-    const [country, city] = combo.split('|||');
-    const slots = slotMap[country + '|||' + city] || [];
+  // All cities to update in live tracker
+  const ALL_CITIES = ['London','Manchester','Birmingham','Edinburgh','Cardiff'];
+  const ALL_COUNTRIES = [
+    'Italy','France','Spain','Portugal','Netherlands','Germany','Greece',
+    'Denmark','Austria','Switzerland','Norway','Croatia','Finland','Estonia',
+    'Hungary','Iceland','Malta','Latvia','Lithuania','Slovenia','Belgium',
+    'Czech Republic','Luxembourg','Poland','Slovakia','Sweden','Bulgaria',
+    'Romania','Liechtenstein'
+  ];
 
-    console.log(`\n  ${country} — ${city}: ${slots.length} slot(s)`);
-
-    // 1. Update cache in database
-    await updateSlotCache(country, city, slots);
-
-    // 2. Notify subscribers if slots found
-    if (slots.length > 0) {
-      console.log(`  ✓ Notifying subscribers...`);
-      await notifySubscribers(country, city, slots);
+  // ── Update ALL country/city combos in database (powers live tracker) ──
+  for (const city of ALL_CITIES) {
+    for (const country of ALL_COUNTRIES) {
+      const slots = slotMap[country + '|||' + city] || [];
+      await updateSlotCache(country, city, slots);
     }
+  }
+
+  // ── Notify subscribers for their specific combos ──
+  const { data: subscribers } = await supabase
+    .from('subscribers')
+    .select('*')
+    .eq('active', true)
+    .in('plan', ['email', 'full']);
+
+  if (subscribers && subscribers.length > 0) {
+    console.log(`\n👥 Checking ${subscribers.length} subscribers for alerts...`);
+
+    // Get unique country+city combos from subscribers
+    const subCombos = new Set();
+    subscribers.forEach(sub => {
+      const countries = sub.centres || [];
+      const cities    = sub.cities   || ['London'];
+      countries.forEach(country => {
+        cities.forEach(city => subCombos.add(country + '|||' + city));
+      });
+    });
+
+    for (const combo of subCombos) {
+      const [country, city] = combo.split('|||');
+      const slots = slotMap[country + '|||' + city] || [];
+      if (slots.length > 0) {
+        console.log(`  ✓ Slots found for ${country}/${city} — notifying...`);
+        await notifySubscribers(country, city, slots);
+      }
+    }
+  } else {
+    console.log('\n👥 No active subscribers to notify');
   }
 
   console.log(`\n✅ Scan complete at ${new Date().toLocaleTimeString('en-GB')}`);
