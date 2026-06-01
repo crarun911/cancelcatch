@@ -112,6 +112,21 @@ async function notifySubscribers(country, city, slots) {
 
   for (const sub of matching) {
     try {
+      // ── Dedup: don't re-alert for same country+date within 6 hours ──
+      const { data: recentAlert } = await supabase
+        .from('alerts_log')
+        .select('id')
+        .eq('subscriber_id', sub.id)
+        .eq('country', country)
+        .eq('slot_date', slot.date)
+        .gte('sent_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
+        .limit(1);
+
+      if (recentAlert && recentAlert.length > 0) {
+        console.log(`  ⏭ Skipping ${sub.email} — already alerted for ${country} ${slot.date} within 6hrs`);
+        continue;
+      }
+
       if (sub.notif_email) {
         await sendEmail(sub, country, city, slot);
         await logAlert(sub.id, country, city, slot, 'email');
@@ -172,10 +187,23 @@ async function run() {
     'Romania','Liechtenstein'
   ];
 
-  // ── Update ALL country/city combos in database (powers live tracker) ──
-  for (const city of ALL_CITIES) {
-    for (const country of ALL_COUNTRIES) {
-      const slots = slotMap[country + '|||' + city] || [];
+  // ── Update database for live tracker ──
+  // Only update combos that Telegram actually reported on
+  // For cities with no Telegram data, keep existing DB values
+  const updatedCombos = new Set(Object.keys(slotMap));
+
+  // Always update London (main city Telegram covers)
+  for (const country of ALL_COUNTRIES) {
+    const londonSlots = slotMap[country + '|||London'] || [];
+    await updateSlotCache(country, 'London', londonSlots);
+  }
+
+  // For other cities, only update if Telegram has data
+  const otherCities = ALL_CITIES.filter(c => c !== 'London');
+  for (const combo of updatedCombos) {
+    const [country, city] = combo.split('|||');
+    if (otherCities.includes(city)) {
+      const slots = slotMap[combo] || [];
       await updateSlotCache(country, city, slots);
     }
   }
