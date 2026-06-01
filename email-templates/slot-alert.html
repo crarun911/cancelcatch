@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slot available — CancelCatch</title>
+<title>Visa slot available — CancelCatch</title>
 </head>
 <body style="margin:0;padding:0;background:#f8f7f4;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f7f4;padding:32px 16px">
@@ -22,12 +22,12 @@
       <!-- Alert banner -->
       <tr>
         <td style="background:#1a7a4a;padding:20px 28px">
-          <p style="margin:0;font-size:13px;color:#edf7f1;font-weight:500;letter-spacing:0.05em;text-transform:uppercase">Slot found</p>
+          <p style="margin:0;font-size:13px;color:#edf7f1;font-weight:500;letter-spacing:0.05em;text-transform:uppercase">Visa appointment slot found</p>
           <p style="margin:6px 0 0;font-size:24px;color:#fff;font-weight:600;letter-spacing:-0.01em">
             {{CENTRE_NAME}}
           </p>
           <p style="margin:4px 0 0;font-size:16px;color:#b8e2ca">
-            {{SLOT_DATE}} &nbsp;·&nbsp; {{SLOT_TIME}}
+            {{SLOT_DATE}} &nbsp;·&nbsp; Earliest available
           </p>
         </td>
       </tr>
@@ -39,25 +39,25 @@
             Hi {{FIRST_NAME}},
           </p>
           <p style="margin:0 0 16px;font-size:15px;color:#3a3a3a;line-height:1.6">
-            A cancellation slot has just appeared at <strong>{{CENTRE_NAME}}</strong> 
-            that matches your preferences. Slots like this disappear in seconds — 
-            click below to book it now on gov.uk.
+            A visa appointment slot has just appeared at <strong>{{CENTRE_NAME}}</strong>
+            that matches your preferences. Slots like this disappear within minutes —
+            click below to book it now on the VFS Global website.
           </p>
 
           <!-- CTA Button -->
           <table cellpadding="0" cellspacing="0" style="margin:24px 0">
             <tr>
               <td style="background:#1a3f6f;border-radius:8px">
-                <a href="{{BOOKING_LINK}}" 
+                <a href="{{BOOKING_LINK}}"
                    style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:-0.01em">
-                  Book this slot on gov.uk →
+                  Book this slot on VFS Global →
                 </a>
               </td>
             </tr>
           </table>
 
           <!-- Slot details -->
-          <table width="100%" cellpadding="0" cellspacing="0" 
+          <table width="100%" cellpadding="0" cellspacing="0"
                  style="background:#f8f7f4;border-radius:8px;padding:16px;margin-bottom:20px">
             <tr>
               <td style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.05em;padding-bottom:10px">
@@ -66,28 +66,28 @@
             </tr>
             <tr>
               <td style="font-size:13px;color:#3a3a3a;padding:4px 0">
-                📍 <strong>Centre:</strong> {{CENTRE_NAME}}
+                🌍 <strong>Destination:</strong> {{CENTRE_NAME}}
               </td>
             </tr>
             <tr>
               <td style="font-size:13px;color:#3a3a3a;padding:4px 0">
-                📅 <strong>Date:</strong> {{SLOT_DATE}}
+                📅 <strong>Earliest date:</strong> {{SLOT_DATE}}
               </td>
             </tr>
             <tr>
               <td style="font-size:13px;color:#3a3a3a;padding:4px 0">
-                🕐 <strong>Time:</strong> {{SLOT_TIME}}
+                📍 <strong>VFS centre:</strong> as selected in your preferences
               </td>
             </tr>
           </table>
 
           <p style="margin:0 0 8px;font-size:13px;color:#777;line-height:1.6">
-            <strong>Remember:</strong> You must book this yourself on gov.uk using your 
-            own DVSA credentials. CancelCatch never books on your behalf — 
-            this keeps you fully compliant with DVSA rules (SI 2026/326).
+            <strong>Remember:</strong> You must book this appointment yourself on the
+            official VFS Global website. CancelCatch never books on your behalf —
+            we only send you alerts.
           </p>
           <p style="margin:0;font-size:13px;color:#777;line-height:1.6">
-            Good luck on your test! 🚗
+            Good luck with your visa application! ✈️
           </p>
         </td>
       </tr>
@@ -96,19 +96,17 @@
       <tr>
         <td style="background:#f0ede8;border-radius:0 0 12px 12px;padding:20px 28px">
           <p style="margin:0 0 8px;font-size:12px;color:#888;line-height:1.6">
-            You're receiving this because you signed up for alerts at 
+            You're receiving this because you signed up for alerts at
             <a href="https://cancelcatch.co.uk" style="color:#1a3f6f">cancelcatch.co.uk</a>.
             Your plan: <strong>{{PLAN_NAME}}</strong>.
           </p>
           <p style="margin:0;font-size:12px;color:#888;line-height:1.6">
-            <a href="https://cancelcatch.co.uk/unsubscribe?token={{UNSUBSCRIBE_TOKEN}}" 
-               style="color:#888">Unsubscribe</a> &nbsp;·&nbsp;
             <a href="https://cancelcatch.co.uk" style="color:#888">Manage account</a> &nbsp;·&nbsp;
             <a href="mailto:hello@cancelcatch.co.uk" style="color:#888">Contact us</a>
           </p>
           <p style="margin:8px 0 0;font-size:11px;color:#aaa">
-            © 2026 CancelCatch · Not affiliated with DVSA · 
-            <a href="https://cancelcatch.co.uk/privacy" style="color:#aaa">Privacy Policy</a>
+            © 2026 CancelCatch · Not affiliated with VFS Global or any embassy ·
+            <a href="https://cancelcatch.co.uk" style="color:#aaa">Privacy Policy</a>
           </p>
         </td>
       </tr>

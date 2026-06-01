@@ -1,10 +1,9 @@
 // CancelCatch — cron.js
-// Deploy to Railway or run via GitHub Actions
-// node cron.js        → runs continuously every 15 mins
-// node cron.js --once → runs once then exits (GitHub Actions)
+// Architecture: Scraper → Database → Notification Engine
+// Never scrapes when users visit — runs on schedule, caches in Supabase
 
 require('dotenv').config();
-const { checkDVSA }  = require('./dvsa-scraper');
+const { getAvailableSlots } = require('./telegram-scraper');
 const { createClient } = require('@supabase/supabase-js');
 const sgMail           = require('@sendgrid/mail');
 const twilio           = require('twilio');
@@ -20,43 +19,41 @@ const supabase = createClient(
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
-// Load email template once
 const EMAIL_TEMPLATE = fs.readFileSync(
   path.join(__dirname, 'email-templates/slot-alert.html'), 'utf8'
 );
 
 // ── Send Email ────────────────────────────────────────────────────────────────
-async function sendEmail(subscriber, centre, slot) {
-  const bookingLink = 'https://www.gov.uk/book-driving-test';
+async function sendEmail(subscriber, country, city, slot) {
+  const bookingLink = `https://www.vfsglobal.com/en/individuals/index.html`;
   const html = EMAIL_TEMPLATE
     .replace(/{{FIRST_NAME}}/g,        subscriber.fname)
-    .replace(/{{CENTRE_NAME}}/g,       centre)
+    .replace(/{{CENTRE_NAME}}/g,       `${country} (${city})`)
     .replace(/{{SLOT_DATE}}/g,         formatDate(slot.date))
     .replace(/{{SLOT_TIME}}/g,         slot.time || 'Morning')
     .replace(/{{BOOKING_LINK}}/g,      bookingLink)
-    .replace(/{{PLAN_NAME}}/g,         subscriber.plan === 'basic' ? 'Basic' : 'Standard')
+    .replace(/{{PLAN_NAME}}/g,         subscriber.plan === 'full' ? 'Email + WhatsApp' : 'Email')
     .replace(/{{UNSUBSCRIBE_TOKEN}}/g, subscriber.id);
 
   await sgMail.send({
     to:      subscriber.email,
     from:    { email: 'crarun911@gmail.com', name: 'CancelCatch' },
     replyTo: 'crarun911@gmail.com',
-    subject: `Test slot found at ${centre} — ${formatDate(slot.date)}`,
+    subject: `✅ Visa slot found — ${country} in ${city} on ${formatDate(slot.date)}`,
     html,
-    text: `Hi ${subscriber.fname}, a slot is available at ${centre} on ${formatDate(slot.date)} at ${slot.time || 'Morning'}. Book now: ${bookingLink}`,
+    text: `Hi ${subscriber.fname}, a visa appointment slot is available for ${country} in ${city} on ${formatDate(slot.date)}. Book now: ${bookingLink}`,
   });
-  console.log(`📧 Email sent to ${subscriber.email} — ${centre} ${slot.date}`);
+  console.log(`  📧 Email → ${subscriber.email} — ${country}/${city}`);
 }
 
 // ── Send WhatsApp ─────────────────────────────────────────────────────────────
-async function sendWhatsApp(subscriber, centre, slot) {
+async function sendWhatsApp(subscriber, country, city, slot) {
   const msg =
-    `✅ *Slot available!*\n\n` +
-    `📍 *Centre:* ${centre}\n` +
-    `📅 *Date:* ${formatDate(slot.date)}\n` +
-    `🕐 *Time:* ${slot.time || 'Morning'}\n\n` +
-    `Book it now on gov.uk — you must book yourself:\n` +
-    `https://www.gov.uk/book-driving-test\n\n` +
+    `✅ *Visa slot available!*\n\n` +
+    `🌍 *Country:* ${country}\n` +
+    `📍 *VFS City:* ${city}\n` +
+    `📅 *Earliest date:* ${formatDate(slot.date)}\n\n` +
+    `Book now on VFS Global:\nhttps://www.vfsglobal.com/en/individuals/index.html\n\n` +
     `_CancelCatch — cancelcatch.co.uk_`;
 
   await twilioClient.messages.create({
@@ -64,112 +61,147 @@ async function sendWhatsApp(subscriber, centre, slot) {
     to:   `whatsapp:${subscriber.whatsapp}`,
     body: msg,
   });
-  console.log(`💬 WhatsApp sent to ${subscriber.whatsapp} — ${centre} ${slot.date}`);
+  console.log(`  💬 WhatsApp → ${subscriber.whatsapp} — ${country}/${city}`);
+}
+
+// ── Update visa_slots table ───────────────────────────────────────────────────
+async function updateSlotCache(country, city, slots) {
+  const now = new Date().toISOString();
+  const hasSlots = slots.length > 0;
+  const earliest = hasSlots ? slots.sort((a,b) => a.date.localeCompare(b.date))[0].date : null;
+
+  const { error } = await supabase
+    .from('visa_slots')
+    .upsert({
+      visa_destination:   country,
+      city_from:          city,
+      visa_type:          'tourist',
+      earliest_slot_date: earliest,
+      slots_count:        slots.length,
+      last_checked:       now,
+      last_seen_available: hasSlots ? now : undefined,
+    }, { onConflict: 'visa_destination,city_from,visa_type' });
+
+  if (error) console.error(`  DB update error for ${country}/${city}:`, error.message);
+  else console.log(`  ✓ Cache updated: ${country}/${city} — ${hasSlots ? earliest : 'no slots'}`);
+}
+
+// ── Notify matching subscribers ───────────────────────────────────────────────
+async function notifySubscribers(country, city, slots) {
+  if (!slots.length) return;
+
+  // Find active subscribers watching this country + city combo
+  const { data: subscribers, error } = await supabase
+    .from('subscribers')
+    .select('*')
+    .eq('active', true)
+    .in('plan', ['email', 'full'])
+    .contains('centres', [country]);
+
+  if (error || !subscribers?.length) return;
+
+  // Filter by city
+  const matching = subscribers.filter(sub => {
+    const subCities = sub.cities || ['London'];
+    return subCities.some(c => c.trim().toLowerCase() === city.toLowerCase());
+  });
+
+  console.log(`  👥 ${matching.length} subscribers to notify for ${country}/${city}`);
+
+  const slot = slots[0]; // Earliest slot
+
+  for (const sub of matching) {
+    try {
+      if (sub.notif_email) {
+        await sendEmail(sub, country, city, slot);
+        await logAlert(sub.id, country, city, slot, 'email');
+      }
+      if (sub.notif_wa && sub.whatsapp && sub.plan === 'full') {
+        await sendWhatsApp(sub, country, city, slot);
+        await logAlert(sub.id, country, city, slot, 'whatsapp');
+      }
+    } catch (err) {
+      console.error(`  Failed to notify ${sub.email}:`, err.message);
+      if (err.response) console.error('  Details:', JSON.stringify(err.response.body));
+    }
+  }
 }
 
 // ── Log Alert ─────────────────────────────────────────────────────────────────
-async function logAlert(subscriberId, centre, slot, channel) {
+async function logAlert(subscriberId, country, city, slot, channel) {
   await supabase.from('alerts_log').insert({
     subscriber_id: subscriberId,
-    centre,
+    country, city,
     slot_date: slot.date,
     slot_time: slot.time,
     channel,
   });
   await supabase
     .from('subscribers')
-    .update({ last_alerted_at: new Date() })
+    .update({ alerts_sent: supabase.rpc('increment'), last_alerted_at: new Date() })
     .eq('id', subscriberId);
-}
-
-// ── Expire Trials ─────────────────────────────────────────────────────────────
-async function expireTrials() {
-  const { error } = await supabase
-    .from('subscribers')
-    .update({ active: false })
-    .eq('plan', 'trial')
-    .eq('active', true)
-    .lt('trial_ends_at', new Date().toISOString());
-  if (!error) console.log('🕐 Expired old trials');
 }
 
 // ── Main Run ──────────────────────────────────────────────────────────────────
 async function run() {
-  console.log(`\n🔍 CancelCatch check started at ${new Date().toLocaleTimeString('en-GB')}`);
+  console.log(`\n🔍 CancelCatch scan started at ${new Date().toLocaleTimeString('en-GB')}`);
 
-  await expireTrials();
-
+  // Get all active subscribers to know which countries/cities to check
   const { data: subscribers, error } = await supabase
     .from('subscribers')
-    .select('*')
+    .select('centres, cities')
     .eq('active', true)
-    .in('plan', ['basic', 'standard']);
+    .in('plan', ['email', 'full']);
 
-  if (error) { console.error('DB error:', error.message); return; }
-  console.log(`👥 Checking ${subscribers.length} active subscribers`);
+  if (!subscribers?.length) {
+    console.log('👥 No active subscribers — skipping scan');
+    return;
+  }
 
-  // Deduplicate centres
-  const centreMap = {};
-  for (const sub of subscribers) {
-    for (const centre of sub.centres) {
-      if (!centreMap[centre]) centreMap[centre] = [];
-      centreMap[centre].push(sub);
+  // Deduplicate country+city combos
+  const combos = new Set();
+  subscribers.forEach(sub => {
+    const countries = sub.centres || [];
+    const cities    = sub.cities   || ['London'];
+    countries.forEach(country => {
+      cities.forEach(city => combos.add(`${country}|||${city}`));
+    });
+  });
+
+  // Get ALL available slots from Telegram channel in one go
+  console.log('\n📡 Fetching slot data from Telegram channel...');
+  const allSlots = await getAvailableSlots();
+  console.log(`\n🌍 Found ${allSlots.length} total slots across all countries`);
+
+  // Group slots by country+city
+  const slotMap = {};
+  allSlots.forEach(slot => {
+    const key = slot.country + '|||' + slot.city;
+    if (!slotMap[key]) slotMap[key] = [];
+    slotMap[key].push(slot);
+  });
+
+  // Update cache and notify for each subscribed combo
+  for (const combo of combos) {
+    const [country, city] = combo.split('|||');
+    const slots = slotMap[country + '|||' + city] || [];
+
+    console.log(`\n  ${country} — ${city}: ${slots.length} slot(s)`);
+
+    // 1. Update cache in database
+    await updateSlotCache(country, city, slots);
+
+    // 2. Notify subscribers if slots found
+    if (slots.length > 0) {
+      console.log(`  ✓ Notifying subscribers...`);
+      await notifySubscribers(country, city, slots);
     }
   }
 
-  // Check each centre once
-  for (const [centre, subs] of Object.entries(centreMap)) {
-    console.log(`  Checking ${centre}...`);
-
-    const dateFrom = subs.reduce((min, s) => s.date_from < min ? s.date_from : min, subs[0].date_from);
-    const dateTo   = subs.reduce((max, s) => s.date_to   > max ? s.date_to   : max, subs[0].date_to);
-
-    const slots = await checkDVSA(centre, dateFrom, dateTo, 'any');
-
-    if (!slots.length) {
-      console.log(`    No slots at ${centre}`);
-      continue;
-    }
-
-    console.log(`    ✓ ${slots.length} slot(s) found at ${centre}!`);
-
-    for (const sub of subs) {
-      const matching = slots.filter(slot => slotMatchesPrefs(slot, sub));
-      if (!matching.length) continue;
-      const slot = matching[0];
-
-      try {
-        if (sub.notif_email) {
-          await sendEmail(sub, centre, slot);
-          await logAlert(sub.id, centre, slot, 'email');
-        }
-        if (sub.notif_wa && sub.whatsapp && sub.plan === 'standard') {
-          await sendWhatsApp(sub, centre, slot);
-          await logAlert(sub.id, centre, slot, 'whatsapp');
-        }
-      } catch (err) {
-        console.error(`  Failed to notify ${sub.email}:`, err.message);
-        if (err.response) console.error('  Details:', JSON.stringify(err.response.body));
-      }
-    }
-  }
-
-  console.log(`✅ Check complete at ${new Date().toLocaleTimeString('en-GB')}\n`);
+  console.log(`\n✅ Scan complete at ${new Date().toLocaleTimeString('en-GB')}`);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function slotMatchesPrefs(slot, sub) {
-  if (sub.date_from && slot.date < sub.date_from) return false;
-  if (sub.date_to   && slot.date > sub.date_to)   return false;
-  if (sub.time_pref && sub.time_pref !== 'any') {
-    const hour = parseInt(slot.time?.split(':')[0] || '10');
-    if (sub.time_pref === 'morning'   && hour >= 12) return false;
-    if (sub.time_pref === 'afternoon' && (hour < 12 || hour >= 17)) return false;
-    if (sub.time_pref === 'evening'   && hour < 17)  return false;
-  }
-  return true;
-}
-
 function formatDate(dateStr) {
   if (!dateStr) return 'TBC';
   return new Date(dateStr).toLocaleDateString('en-GB', {
@@ -189,7 +221,7 @@ if (runOnce) {
     process.exit(1);
   });
 } else {
-  cron.schedule('*/15 * * * *', run);
+  cron.schedule('*/10 * * * *', run);
   run();
-  console.log('🚀 CancelCatch cron started — checking every 15 minutes');
+  console.log('🚀 CancelCatch started — scanning every 10 minutes');
 }

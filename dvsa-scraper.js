@@ -1,119 +1,172 @@
-// dvsa-scraper.js
-// Uses ScraperAPI to bypass DVSA bot protection
-// ScraperAPI handles proxies and JS rendering automatically
+// vfs-scraper.js
+// Intercepts VFS Global internal API calls to find appointment slots
+// Run from home PC — residential IP bypasses bot protection
 
-const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 
-function scraperUrl(targetUrl) {
-return `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&country_code=gb&ultra_premium=true`;
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function randomDelay(min = 1000, max = 3000) {
-  return new Promise(resolve =>
-    setTimeout(resolve, Math.floor(Math.random() * (max - min) + min))
-  );
-}
+const VFS_CODES = {
+  'Italy':'ita','France':'fra','Spain':'esp','Portugal':'prt',
+  'Netherlands':'nld','Germany':'deu','Greece':'grc','Denmark':'dnk',
+  'Austria':'aut','Switzerland':'che','Norway':'nor','Croatia':'hrv',
+  'Finland':'fin','Estonia':'est','Hungary':'hun','Iceland':'isl',
+  'Malta':'mlt','Latvia':'lva','Lithuania':'ltu','Slovenia':'svn',
+  'Belgium':'bel','Czech Republic':'cze','Luxembourg':'lux','Poland':'pol',
+  'Slovakia':'svk','Sweden':'swe','Bulgaria':'bgr','Romania':'rou',
+};
 
 async function checkDVSA(centreName, dateFrom, dateTo, timePref) {
+  const code = VFS_CODES[centreName];
+  if (!code) { console.log(`    No VFS code for ${centreName}`); return []; }
+
+  const url = `https://visa.vfsglobal.com/gbr/en/${code}/book-an-appointment`;
+  let browser;
+
   try {
-    console.log(`    Checking DVSA for ${centreName} via ScraperAPI...`);
+    console.log(`    Opening VFS ${centreName}...`);
 
-    if (!SCRAPER_API_KEY) {
-      console.error('    SCRAPER_API_KEY not set!');
-      return [];
-    }
-
-    // Step 1 — Load the DVSA booking start page
-    const startUrl = 'https://driverpracticaltest.dvsa.gov.uk/application';
-    console.log(`    Fetching: ${startUrl}`);
-
-    const response = await fetch(scraperUrl(startUrl), {
-      timeout: 60000
+    browser = await puppeteer.launch({
+      headless: false,
+      args: ['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage',
+             '--disable-gpu','--window-size=1280,800']
     });
 
-    console.log(`    ScraperAPI status: ${response.status}`);
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 800 });
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.log(`    ScraperAPI error: ${response.status}`);
-      console.log(`    Error details: ${errorText.slice(0, 300)}`);
-      return [];
-    }
+    // ── Intercept ALL requests and responses ──
+    const slots = [];
+    const allApiCalls = [];
 
-    const html = await response.text();
-    console.log(`    Page length: ${html.length} chars`);
-    console.log(`    Snippet: ${html.slice(0, 400)}`);
+    page.on('request', request => {
+      const reqUrl = request.url();
+      // Log all non-static requests
+      if (!reqUrl.match(/\.(js|css|png|jpg|gif|svg|woff|ico)(\?|$)/)) {
+        allApiCalls.push({ type: 'req', url: reqUrl.slice(0,120), method: request.method() });
+      }
+    });
 
-    // Check if we got past bot protection
-    if (html.includes('Incapsula') || html.includes('NOINDEX, NOFOLLOW')) {
-      console.log(`    Still blocked by bot protection`);
-      return [];
-    }
+    page.on('response', async response => {
+      const resUrl = response.url();
+      const status = response.status();
+      if (status === 200 && !resUrl.match(/\.(js|css|png|jpg|gif|svg|woff|ico)(\?|$)/)) {
+        try {
+          const ct = response.headers()['content-type'] || '';
+          if (ct.includes('json')) {
+            const text = await response.text();
+            allApiCalls.push({ type: 'res', url: resUrl.slice(0,120), body: text.slice(0,300) });
 
-    // Step 2 — Look for available slots in the page
-    // DVSA shows a calendar with available dates
-    const slots = parseSlots(html, dateFrom, dateTo, timePref);
-    console.log(`    Found ${slots.length} matching slots`);
-    return slots;
+            // Parse for slot data
+            const data = JSON.parse(text);
+            const extract = (obj) => {
+              if (!obj) return;
+              if (Array.isArray(obj)) { obj.forEach(extract); return; }
+              if (typeof obj !== 'object') return;
+              // Look for objects with date fields
+              if ((obj.date||obj.appointmentDate||obj.slotDate||obj.startDate) && obj.date !== undefined) {
+                slots.push(obj);
+              } else {
+                Object.values(obj).forEach(v => {
+                  if (typeof v === 'object') extract(v);
+                });
+              }
+            };
+            extract(data);
+          }
+        } catch(e) {}
+      }
+    });
 
-  } catch (err) {
-    console.error(`    ScraperAPI error: ${err.message}`);
-    return [];
-  }
-}
+    // Load page
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+    await delay(60000);
 
-function parseSlots(html, dateFrom, dateTo, timePref) {
-  const slots = [];
+    console.log(`    Page loaded. Navigating booking flow...`);
 
-  try {
-    // Look for date patterns in the HTML
-    // DVSA uses various formats — we try multiple patterns
-    
-    // Pattern 1: JSON data embedded in page
-    const jsonMatch = html.match(/availableSlots['":\s]+(\[.*?\])/s);
-    if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[1]);
-      data.forEach(slot => {
-        if (slot.date || slot.testDate) {
-          slots.push({
-            date: slot.date || slot.testDate,
-            time: slot.time || slot.startTime || '09:00'
-          });
+    // ── Step 1: Click "Book Appointment" / "New Appointment" ──
+    await page.evaluate(() => {
+      const candidates = [...document.querySelectorAll('button, a, [role="button"]')];
+      const target = candidates.find(el => {
+        const text = el.textContent.trim().toLowerCase();
+        return text.includes('new appointment') ||
+               text.includes('book appointment') ||
+               text === 'book' ||
+               text.includes('start');
+      });
+      if (target) target.click();
+    });
+    await delay(3000);
+
+    // ── Step 2: Select visa category if dropdown appears ──
+    await page.evaluate(() => {
+      // Try to select first available option in any dropdown
+      const selects = document.querySelectorAll('select, mat-select');
+      selects.forEach(sel => {
+        if (sel.options && sel.options.length > 1) {
+          sel.value = sel.options[1].value;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
-    }
 
-    // Pattern 2: Date links in calendar
-    const dateRegex = /href="[^"]*(\d{4}-\d{2}-\d{2})[^"]*"/g;
-    let match;
-    while ((match = dateRegex.exec(html)) !== null) {
-      const date = match[1];
-      if (date >= dateFrom && date <= dateTo) {
-        slots.push({ date, time: '09:00' });
-      }
-    }
+      // Try mat-select (Angular Material)
+      const matSelects = document.querySelectorAll('mat-select');
+      matSelects.forEach(sel => sel.click());
+    });
+    await delay(2000);
 
-    // Pattern 3: Data attributes
-    const dataDateRegex = /data-date="(\d{4}-\d{2}-\d{2})"/g;
-    while ((match = dataDateRegex.exec(html)) !== null) {
-      const date = match[1];
-      if (date >= dateFrom && date <= dateTo) {
-        slots.push({ date, time: '09:00' });
-      }
-    }
+    // Click first mat-option if available
+    await page.evaluate(() => {
+      const opts = document.querySelectorAll('mat-option');
+      if (opts.length > 0) opts[0].click();
+    });
+    await delay(2000);
+
+    // ── Step 3: Click Continue/Next ──
+    await page.evaluate(() => {
+      const btns = [...document.querySelectorAll('button')];
+      const next = btns.find(b => {
+        const t = b.textContent.trim().toLowerCase();
+        return t.includes('continue') || t.includes('next') || t === 'ok';
+      });
+      if (next) next.click();
+    });
+    await delay(3000);
+
+    // Log all captured API calls
+    const jsonCalls = allApiCalls.filter(c => c.type === 'res');
+    console.log(`    Total API responses captured: ${jsonCalls.length}`);
+    jsonCalls.slice(0, 10).forEach(c => {
+      console.log(`    URL: ${c.url}`);
+      console.log(`    Body: ${c.body}`);
+      console.log(`    ---`);
+    });
+
+    await browser.close();
+
+    const today = new Date().toISOString().split('T')[0];
+    const valid = slots
+      .map(s => ({
+        date: s.date || s.appointmentDate || s.slotDate || s.startDate || '',
+        time: s.time || s.startTime || '09:00'
+      }))
+      .filter(s => s.date && s.date > today);
+
+    console.log(`    Valid future slots: ${valid.length}`);
+    return valid;
 
   } catch (err) {
-    console.log(`    Parse error: ${err.message}`);
+    if (browser) try { await browser.close(); } catch(e) {}
+    console.error(`    Error: ${err.message}`);
+    return [];
   }
-
-  // Deduplicate
-  const seen = new Set();
-  return slots.filter(s => {
-    const key = s.date + s.time;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
 }
 
 module.exports = { checkDVSA };

@@ -1,0 +1,43 @@
+
+🔍 CancelCatch check started at 18:03:27
+🕐 Expired old trials
+👥 Checking 1 active subscribers
+  Checking Italy...
+    Opening VFS Italy...
+    Page loaded. Navigating booking flow...
+    Total API responses captured: 19
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=country&fields.na
+    Body: {"sys":{"type":"Array"},"total":1,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"5DngceVmMBOGigKyEFVmF8","type":"Entry","createdAt":"2024-08-18T11:49:46.273Z","updatedAt":"2026-04-02T15:58:49.575
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=country&fields.na
+    Body: {"sys":{"type":"Array"},"total":1,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"eO1ihJrJ3Pc38h8mhp8SW","type":"Entry","createdAt":"2021-05-31T14:47:10.331Z","updatedAt":"2026-04-20T04:54:24.736Z
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=countryPage&field
+    Body: {"sys":{"type":"Array"},"total":8,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"5jcaTIlefuGGhnC4IxkCZs","type":"Entry","createdAt":"2021-05-31T14:48:26.929Z","updatedAt":"2026-04-20T04:45:58.668
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=countryLocation&f
+    Body: {"sys":{"type":"Array"},"total":5,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"3MpovW7awOQDsyTBWUt7SK","type":"Entry","createdAt":"2024-11-26T11:40:56.262Z","updatedAt":"2026-05-21T10:55:30.377
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=resourceGroup&fie
+    Body: {"sys":{"type":"Array"},"total":1,"skip":0,"limit":500,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"Cl8GNZxci14sMjENXU3LX","type":"Entry","createdAt":"2020-06-06T11:32:16.604Z","updatedAt":"2026-01-02T08:24:13.833Z
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=countryNewsflash&
+    Body: {"sys":{"type":"Array"},"total":0,"skip":0,"limit":100,"items":[]}
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=onePager&fields.s
+    Body: {"sys":{"type":"Array"},"total":0,"skip":0,"limit":1,"items":[]}
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=mission&fields.is
+    Body: {"sys":{"type":"Array"},"total":1,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"65ycSIDrfDP639Y2MOTK5C","type":"Entry","createdAt":"2020-12-04T10:45:31.812Z","updatedAt":"2026-04-30T16:12:36.383
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=countryPage&inclu
+    Body: {"sys":{"type":"Array"},"total":1,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"6i3yXrG5IDJ4L4uwMP6Wzm","type":"Entry","createdAt":"2020-04-06T14:16:30.530Z","updatedAt":"2026-05-08T09:16:10.643
+    ---
+    URL: https://d2ab400qlgxn2g.cloudfront.net/dev/spaces/xxg4p8gt3sg6/environments/master/entries?content_type=mission&fields.is
+    Body: {"sys":{"type":"Array"},"total":1,"skip":0,"limit":100,"items":[{"metadata":{"tags":[],"concepts":[]},"sys":{"space":{"sys":{"type":"Link","linkType":"Space","id":"xxg4p8gt3sg6"}},"id":"65ycSIDrfDP639Y2MOTK5C","type":"Entry","createdAt":"2020-12-04T10:45:31.812Z","updatedAt":"2026-04-30T16:12:36.383
+    ---
+    Valid future slots: 0
+    No slots at Italy
+✅ Check complete at 18:03:53
+
+✅ Single run complete — exiting
