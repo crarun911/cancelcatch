@@ -37,8 +37,8 @@ async function sendEmail(subscriber, country, city, slot) {
 
   await sgMail.send({
     to:      subscriber.email,
-    from:    { email: 'crarun911@gmail.com', name: 'CancelCatch' },
-    replyTo: 'crarun911@gmail.com',
+    from:    { email: 'tranqlo.dev@gmail.com', name: 'CancelCatch' },
+    replyTo: 'tranqlo.dev@gmail.com',
     subject: `✅ Visa slot found — ${country} in ${city} on ${formatDate(slot.date)}`,
     html,
     text: `Hi ${subscriber.fname}, a visa appointment slot is available for ${country} in ${city} on ${formatDate(slot.date)}. Book now: ${bookingLink}`,
