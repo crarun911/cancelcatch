@@ -1,24 +1,9 @@
 {
-  "name": "cancelcatch-cron",
+  "name": "cancelcatch",
   "version": "1.0.0",
-  "description": "CancelCatch — DVSA slot checker and notifier",
-  "main": "cron.js",
-  "scripts": {
-    "start": "node cron.js",
-    "dev": "nodemon cron.js"
-  },
+  "description": "CancelCatch — Visa Appointment Alerts",
   "dependencies": {
-    "@sendgrid/mail": "^8.1.0",
-    "@supabase/supabase-js": "^2.39.0",
-    "dotenv": "^16.4.0",
-    "node-cron": "^3.0.3",
-    "puppeteer": "^25.1.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "twilio": "^5.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.0"
+    "@supabase/supabase-js": "^2.39.0"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -2075,18 +2075,67 @@ function getRandomDate() {
 }
 
 function initTrackerData() {
-  // Simulate realistic availability — ~4-6 countries have slots at any time
-  const availableCount = Math.floor(Math.random() * 3) + 4;
-  const shuffled = [...COUNTRIES].sort(() => Math.random() - 0.5);
+  // Show loading state
   trackerData = {};
-  shuffled.forEach((c, i) => {
-    trackerData[c.name] = {
-      available: i < availableCount,
-      date: i < availableCount ? getRandomDate() : null,
-      slots: i < availableCount ? Math.floor(Math.random() * 3) + 1 : 0,
-      checked: getRandomMinutes()
-    };
+  COUNTRIES.forEach(c => {
+    trackerData[c.name] = { available: false, date: null, slots: 0, checked: '...' };
   });
+  // Fetch real data from API
+  fetchRealSlots(currentCity);
+}
+
+async function fetchRealSlots(city) {
+  try {
+    document.getElementById('last-checked').textContent = 'loading...';
+    const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
+    const json = await res.json();
+    if (!json.ok || !json.slots) return;
+
+    // Reset tracker data
+    COUNTRIES.forEach(c => {
+      trackerData[c.name] = { available: false, date: null, slots: 0, checked: '—' };
+    });
+
+    // Fill in real data
+    json.slots.forEach(slot => {
+      if (trackerData[slot.country] !== undefined) {
+        const checkedMins = slot.lastChecked
+          ? Math.round((Date.now() - new Date(slot.lastChecked)) / 60000)
+          : null;
+        trackerData[slot.country] = {
+          available: slot.available,
+          date: slot.earliestDate ? formatTrackerDate(slot.earliestDate) : null,
+          slots: slot.slotsCount || (slot.available ? 1 : 0),
+          checked: checkedMins !== null ? checkedMins + ' min ago' : '—'
+        };
+      }
+    });
+
+    renderTracker();
+    document.getElementById('last-checked').textContent = 'just now';
+  } catch(e) {
+    console.error('Failed to fetch real slots:', e);
+    // Fall back to simulated data
+    const availableCount = Math.floor(Math.random() * 3) + 4;
+    const shuffled = [...COUNTRIES].sort(() => Math.random() - 0.5);
+    shuffled.forEach((c, i) => {
+      trackerData[c.name] = {
+        available: i < availableCount,
+        date: i < availableCount ? getRandomDate() : null,
+        slots: i < availableCount ? Math.floor(Math.random() * 3) + 1 : 0,
+        checked: getRandomMinutes() + ' min ago'
+      };
+    });
+    renderTracker();
+    document.getElementById('last-checked').textContent = 'simulated data';
+  }
+}
+
+function formatTrackerDate(dateStr) {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2,'0');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return day + ' ' + months[d.getMonth()];
 }
 
 function renderTracker() {
@@ -2135,9 +2184,7 @@ function setCity(city, btn) {
   currentCity = city;
   document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  initTrackerData();
-  renderTracker();
-  document.getElementById('last-checked').textContent = 'just now';
+  fetchRealSlots(city);
 }
 
 function notifyMe(country) {
@@ -2175,22 +2222,8 @@ function notifyMe(country) {
 initTrackerData();
 renderTracker();
 
-// Simulate live updates every 5 minutes
-setInterval(() => {
-  // Randomly flip a few countries
-  const keys = Object.keys(trackerData);
-  const toFlip = keys.sort(() => Math.random() - 0.5).slice(0, 2);
-  toFlip.forEach(k => {
-    trackerData[k].available = !trackerData[k].available;
-    trackerData[k].date = trackerData[k].available ? getRandomDate() : null;
-    trackerData[k].slots = trackerData[k].available ? Math.floor(Math.random() * 3) + 1 : 0;
-    trackerData[k].checked = 0;
-  });
-  // Update checked times
-  Object.keys(trackerData).forEach(k => { trackerData[k].checked = Math.min(trackerData[k].checked + 5, 30); });
-  renderTracker();
-  document.getElementById('last-checked').textContent = 'just now';
-}, 300000);
+// Refresh real data every 5 minutes
+setInterval(() => { fetchRealSlots(currentCity); }, 300000);
 
 /* ── SLOT DETAIL PAGE ── */
 let detailCountry = null;
