@@ -2085,21 +2085,39 @@ function initTrackerData() {
 async function fetchRealSlots(city) {
   try {
     document.getElementById('last-checked').textContent = 'loading...';
-    const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
-    const json = await res.json();
-    if (!json.ok) return;
-
-    // If no data for this city yet, show a message
-    if (!json.hasData || !json.slots.length) {
-      document.getElementById('last-checked').textContent = 'no data yet for ' + city;
-      document.getElementById('slots-available-label').textContent = 'No data yet for ' + city;
-      document.getElementById('available-tbody').innerHTML =
-        '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px">' +
-        'No slot data available for ' + city + ' yet. Data updates every 15 minutes from live VFS sources.' +
-        '</td></tr>';
-      document.getElementById('unavailable-tbody').innerHTML = '';
-      return;
+    // Try Vercel API first, fall back to Supabase direct
+    let json;
+    try {
+      const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
+      const text = await res.text();
+      // Check if response is HTML (Vercel not routing correctly)
+      if (text.trim().startsWith('<')) {
+        throw new Error('API returned HTML');
+      }
+      json = JSON.parse(text);
+    } catch(apiErr) {
+      // Fall back to Supabase REST API directly
+      const SUPABASE_URL = 'https://pgujsxxccvxhrkhwyayz.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_KB90PtLtfwNz-MMnoJth3g_RHf-YskX';
+      const sbRes = await fetch(
+        SUPABASE_URL + '/rest/v1/visa_slots?city_from=eq.' + encodeURIComponent(city) + '&visa_type=eq.tourist&order=visa_destination.asc',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+      );
+      const sbData = await sbRes.json();
+      json = {
+        ok: true,
+        city,
+        slots: sbData.map(row => ({
+          country: row.visa_destination,
+          city: row.city_from,
+          available: row.earliest_slot_date !== null,
+          earliestDate: row.earliest_slot_date,
+          slotsCount: row.slots_count || 0,
+          lastChecked: row.last_checked,
+        }))
+      };
     }
+    if (!json.ok || !json.slots || !json.slots.length) return;
 
     // Reset tracker data
     COUNTRIES.forEach(c => {
