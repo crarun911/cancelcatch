@@ -1531,8 +1531,6 @@ async function submitForm() {
     destinations: [...selectedDests],
     vfsCity: selectedCities.join(', '),
     visaType: selectedVisaType,
-    visaType: document.getElementById('visa-type').value,
-    numApplicants: document.getElementById('num-applicants').value,
     dateFrom: null, dateTo: null,
     notifEmail: document.getElementById('notif-email').checked,
     notifWa, plan: currentPlan,
@@ -1572,7 +1570,7 @@ async function submitForm() {
   const sc = document.getElementById('success-card');
   sc.style.display = 'block';
   document.getElementById('success-msg').textContent =
-    `Hi ${fname}! We'll watch ${selectedDests.join(', ')} from ${city} and alert you via ${[record.notifEmail?'email':'',record.notifWa?'WhatsApp':''].filter(Boolean).join(' & ')} the moment a slot opens.`;
+    `Hi ${fname}! We'll watch ${selectedDests.join(', ')} from ${selectedCities.join(', ')} and alert you via ${[record.notifEmail?'email':'',record.notifWa?'WhatsApp':''].filter(Boolean).join(' & ')} the moment a slot opens.`;
 }
 
 /* ── ACCOUNT ── */
@@ -2089,7 +2087,19 @@ async function fetchRealSlots(city) {
     document.getElementById('last-checked').textContent = 'loading...';
     const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
     const json = await res.json();
-    if (!json.ok || !json.slots) return;
+    if (!json.ok) return;
+
+    // If no data for this city yet, show a message
+    if (!json.hasData || !json.slots.length) {
+      document.getElementById('last-checked').textContent = 'no data yet for ' + city;
+      document.getElementById('slots-available-label').textContent = 'No data yet for ' + city;
+      document.getElementById('available-tbody').innerHTML =
+        '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px">' +
+        'No slot data available for ' + city + ' yet. Data updates every 15 minutes from live VFS sources.' +
+        '</td></tr>';
+      document.getElementById('unavailable-tbody').innerHTML = '';
+      return;
+    }
 
     // Reset tracker data
     COUNTRIES.forEach(c => {
