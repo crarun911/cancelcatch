@@ -13,40 +13,60 @@ module.exports = async (req, res) => {
   try {
     const {
       fname, lname, email, whatsapp, password,
-      centres, dateFrom, dateTo, timePref,
+      centres, cities, visaType,
+      dateFrom, dateTo, timePref,
       notifEmail, notifWa, plan
     } = req.body;
 
+    // Validate required fields
+    if (!fname || !email || !password) {
+      return res.status(400).json({ error: 'Name, email and password are required.' });
+    }
+    if (!centres || !centres.length) {
+      return res.status(400).json({ error: 'Please select at least one destination.' });
+    }
+
+    // Check if email already exists
     const { data: existing } = await supabase
       .from('subscribers')
       .select('id')
-      .eq('email', email)
+      .eq('email', email.toLowerCase())
       .single();
 
     if (existing) {
-      return res.status(400).json({ error: 'Email already registered.' });
+      return res.status(400).json({ error: 'This email is already registered. Please log in.' });
     }
 
+    // Save to Supabase
     const { error } = await supabase
       .from('subscribers')
       .insert({
-        fname, lname, email, whatsapp,
+        fname:         fname.trim(),
+        lname:         lname ? lname.trim() : '',
+        email:         email.toLowerCase().trim(),
+        whatsapp:      whatsapp || null,
         password_hash: Buffer.from(password).toString('base64'),
-        centres, date_from: dateFrom, date_to: dateTo,
-        time_pref: timePref, notif_email: notifEmail,
-        notif_wa: notifWa, plan,
-        trial_ends_at: plan === 'trial'
-          ? new Date(Date.now() + 7 * 86400000).toISOString()
-          : null,
-        active: true
+        centres:       centres,
+        cities:        cities || ['London'],
+        visa_type:     visaType || 'tourist',
+        date_from:     dateFrom || null,
+        date_to:       dateTo   || null,
+        time_pref:     timePref || 'any',
+        notif_email:   notifEmail !== false,
+        notif_wa:      notifWa === true,
+        plan:          plan || 'email',
+        active:        true,
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
 
     return res.status(200).json({ ok: true });
 
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Something went wrong.' });
+    console.error('Subscribe error:', err.message);
+    return res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 };
