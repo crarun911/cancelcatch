@@ -48,21 +48,22 @@ function parseSlotMessage(text) {
     else if (text.includes('🟡')) city = 'Cardiff';
   }
 
-  // Waitlist — no date available but still useful
+  // Find earliest date — format like "30.07" or "12.06.2026"
+  const dateMatch = text.match(/(\d{2})\.(\d{2})(?:\.(\d{4}))?/);
+
+  // Waitlist — no date needed
   if (hasWaitlist && !hasSlot) {
-    const today = new Date();
-    today.setDate(today.getDate() + 1);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
     return {
       country, city,
-      date: today.toISOString().split('T')[0],
+      date: tomorrow.toISOString().split('T')[0],
       time: '09:00',
       waitlist: true,
       raw: text
     };
   }
 
-  // Find earliest date — format like "30.07" or "12.06.2026"
-  const dateMatch = text.match(/(\d{2})\.(\d{2})(?:\.(\d{4}))?/);
   if (!dateMatch) return null;
 
   const day   = dateMatch[1];
