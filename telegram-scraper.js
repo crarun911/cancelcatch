@@ -35,8 +35,11 @@ function parseSlotMessage(text) {
 
   const CITIES = ['London', 'Manchester', 'Birmingham', 'Edinburgh', 'Cardiff'];
 
-  // Check if message has a slot (green circle = available)
-  if (!text.includes('🟢')) return null;
+  // Check if message has a slot
+  // 🟢 = London, 🟣 = Edinburgh, 🔵 = Manchester/Birmingham, 🟡 = Cardiff
+  const hasSlot = text.includes('🟢') || text.includes('🟣') || 
+                  text.includes('🔵') || text.includes('🟡');
+  if (!hasSlot) return null;
 
   // Find which country
   let country = null;
@@ -45,10 +48,16 @@ function parseSlotMessage(text) {
   }
   if (!country) return null;
 
-  // Find which city
+  // Find which city — from text or emoji colour
   let city = 'London'; // default
   for (const c of CITIES) {
     if (text.includes(c)) { city = c; break; }
+  }
+  // Fallback: use emoji colour to determine city
+  if (city === 'London' && !text.includes('London')) {
+    if (text.includes('🟣')) city = 'Edinburgh';
+    else if (text.includes('🔵')) city = 'Manchester';
+    else if (text.includes('🟡')) city = 'Cardiff';
   }
 
   // Find earliest date — format like "30.07" or "12.06.2026"
