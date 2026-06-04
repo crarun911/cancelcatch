@@ -2186,7 +2186,7 @@ function renderTracker() {
     return '<tr>'
       + '<td><div class="country-cell"><span class="country-flag">' + c.flag + '</span><span class="country-name">' + c.name + '</span></div></td>'
       + '<td><span class="slot-badge none">No availability</span></td>'
-      + '<td class="hide-mob"><span class="checked-time">' + (c && c.checked ? c.checked : 0) + ' min ago</span></td>'
+      + '<td class="hide-mob"><span class="checked-time">' + (c && c.checked ? c.checked : '—') + '</span></td>'
       + '<td><button class="notify-btn" onclick="notifyMe(AVAIL_DATA[' + uidx + '].name)">🔔 Notify me</button></td>'
       + '</tr>';
   }).join('');
