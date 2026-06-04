@@ -2099,10 +2099,11 @@ async function fetchRealSlots(city) {
           ? Math.round((Date.now() - new Date(slot.lastChecked)) / 60000)
           : null;
         trackerData[slot.country] = {
-          available:    slot.available,
-          date:         slot.earliestDate ? formatTrackerDate(slot.earliestDate) : null,
-          slots:        slot.slotsCount || (slot.available ? 1 : 0),
-          checked:      mins !== null ? mins + ' min ago' : '—'
+          available:  slot.available,
+          waitlist:   slot.waitlist || slot.status === 'waitlist',
+          date:       slot.earliestDate ? formatTrackerDate(slot.earliestDate) : null,
+          slots:      slot.slotsCount || (slot.available ? 1 : 0),
+          checked:    mins !== null ? mins + ' min ago' : '—'
         };
       }
     });
@@ -2126,9 +2127,11 @@ function renderTracker() {
   AVAIL_DATA = [];
   const avail = [];
   const unavail = [];
+  const waitlist = [];
   COUNTRIES.forEach(c => {
     const d = trackerData[c.name];
     if (d && d.available) avail.push({ ...c, ...d });
+    else if (d && d.waitlist) waitlist.push({ ...c, ...d });
     else unavail.push({ ...c, ...d });
   });
 
@@ -2137,6 +2140,25 @@ function renderTracker() {
   const label = document.getElementById('slots-available-label');
 
   label.textContent = `Countries with available slots in ${currentCity} (${avail.length})`;
+  // Update waitlist section
+  var waitlistSection = document.getElementById('waitlist-section');
+  var waitlistTbody   = document.getElementById('waitlist-tbody');
+  var waitlistLabel   = document.getElementById('waitlist-label');
+  if (waitlistSection) {
+    waitlistSection.style.display = waitlist.length ? 'block' : 'none';
+    if (waitlistLabel) waitlistLabel.textContent = 'Waitlist open in ' + currentCity + ' (' + waitlist.length + ')';
+    if (waitlistTbody) {
+      waitlistTbody.innerHTML = waitlist.map(function(c) {
+        var uidx = AVAIL_DATA.push({name:c.name, flag:c.flag, city:currentCity}) - 1;
+        return '<tr>'
+          + '<td><div class="country-cell"><span class="country-flag">'+c.flag+'</span><span class="country-name">'+c.name+'</span></div></td>'
+          + '<td><span class="slot-badge" style="background:#fff8e1;color:#856404;border:1px solid #ffd700">⚠️ Waitlist open</span></td>'
+          + '<td class="hide-mob"><span class="checked-time">'+(c.checked||'—')+'</span></td>'
+          + '<td><button class="notify-btn" onclick="notifyMe(AVAIL_DATA['+uidx+'].name)">🔔 Notify me</button></td>'
+          + '</tr>';
+      }).join('');
+    }
+  }
 
   availTbody.innerHTML = (function() {
     if (!avail.length) return '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ink3);font-size:13px">No slots available right now in ' + currentCity + '</td></tr>';

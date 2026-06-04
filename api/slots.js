@@ -32,6 +32,8 @@ module.exports = async (req, res) => {
       country:      row.visa_destination,
       city:         row.city_from,
       available:    row.earliest_slot_date !== null,
+      waitlist:     row.status === 'waitlist',
+      status:       row.status || (row.earliest_slot_date ? 'available' : 'unavailable'),
       earliestDate: row.earliest_slot_date,
       slotsCount:   row.slots_count || 0,
       lastChecked:  row.last_checked,

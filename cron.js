@@ -67,23 +67,32 @@ async function sendWhatsApp(subscriber, country, city, slot) {
 // ── Update visa_slots table ───────────────────────────────────────────────────
 async function updateSlotCache(country, city, slots) {
   const now = new Date().toISOString();
-  const hasSlots = slots.length > 0;
-  const earliest = hasSlots ? slots.sort((a,b) => a.date.localeCompare(b.date))[0].date : null;
+  const realSlots   = slots.filter(s => !s.waitlist);
+  const waitlist    = slots.filter(s => s.waitlist);
+  const hasSlots    = realSlots.length > 0;
+  const hasWaitlist = waitlist.length > 0;
+  const earliest    = hasSlots
+    ? realSlots.sort((a,b) => a.date.localeCompare(b.date))[0].date
+    : null;
+
+  // status: 'available' | 'waitlist' | 'unavailable'
+  const status = hasSlots ? 'available' : hasWaitlist ? 'waitlist' : 'unavailable';
 
   const { error } = await supabase
     .from('visa_slots')
     .upsert({
-      visa_destination:   country,
-      city_from:          city,
-      visa_type:          'tourist',
-      earliest_slot_date: earliest,
-      slots_count:        slots.length,
-      last_checked:       now,
+      visa_destination:    country,
+      city_from:           city,
+      visa_type:           'tourist',
+      earliest_slot_date:  earliest,
+      slots_count:         realSlots.length,
+      last_checked:        now,
       last_seen_available: hasSlots ? now : undefined,
+      status:              status,
     }, { onConflict: 'visa_destination,city_from,visa_type' });
 
   if (error) console.error(`  DB update error for ${country}/${city}:`, error.message);
-  else console.log(`  ✓ Cache updated: ${country}/${city} — ${hasSlots ? earliest : 'no slots'}`);
+  else console.log(`  ✓ Cache updated: ${country}/${city} — ${status}${hasSlots ? ' — ' + earliest : ''}`);
 }
 
 // ── Notify matching subscribers ───────────────────────────────────────────────
