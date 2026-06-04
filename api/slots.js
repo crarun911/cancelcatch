@@ -1,7 +1,3 @@
-// api/slots.js
-// Vercel serverless function — returns live slot data from Supabase
-// Called by the live tracker on the website every 30 seconds
-
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -10,8 +6,15 @@ const supabase = createClient(
 );
 
 module.exports = async (req, res) => {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'no-cache');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   const city = req.query.city || 'London';
 
@@ -25,7 +28,7 @@ module.exports = async (req, res) => {
 
     if (error) throw error;
 
-    const slots = data.map(row => ({
+    const slots = (data || []).map(row => ({
       country:      row.visa_destination,
       city:         row.city_from,
       available:    row.earliest_slot_date !== null,
@@ -34,7 +37,7 @@ module.exports = async (req, res) => {
       lastChecked:  row.last_checked,
     }));
 
-    return res.status(200).json({ ok: true, city, slots, updatedAt: new Date().toISOString() });
+    return res.status(200).json({ ok: true, city, slots });
 
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });

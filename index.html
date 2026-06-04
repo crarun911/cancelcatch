@@ -2085,56 +2085,24 @@ function initTrackerData() {
 async function fetchRealSlots(city) {
   try {
     document.getElementById('last-checked').textContent = 'loading...';
-    // Try Vercel API first, fall back to Supabase direct
-    let json;
-    try {
-      const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
-      const text = await res.text();
-      // Check if response is HTML (Vercel not routing correctly)
-      if (text.trim().startsWith('<')) {
-        throw new Error('API returned HTML');
-      }
-      json = JSON.parse(text);
-    } catch(apiErr) {
-      // Fall back to Supabase REST API directly
-      const SUPABASE_URL = 'https://pgujsxxccvxhrkhwyayz.supabase.co';
-      const SUPABASE_KEY = 'sb_publishable_KB90PtLtfwNz-MMnoJth3g_RHf-YskX';
-      const sbRes = await fetch(
-        SUPABASE_URL + '/rest/v1/visa_slots?city_from=eq.' + encodeURIComponent(city) + '&visa_type=eq.tourist&order=visa_destination.asc',
-        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-      );
-      const sbData = await sbRes.json();
-      json = {
-        ok: true,
-        city,
-        slots: sbData.map(row => ({
-          country: row.visa_destination,
-          city: row.city_from,
-          available: row.earliest_slot_date !== null,
-          earliestDate: row.earliest_slot_date,
-          slotsCount: row.slots_count || 0,
-          lastChecked: row.last_checked,
-        }))
-      };
-    }
+    const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
+    const json = await res.json();
     if (!json.ok || !json.slots || !json.slots.length) return;
 
-    // Reset tracker data
     COUNTRIES.forEach(c => {
       trackerData[c.name] = { available: false, date: null, slots: 0, checked: '—' };
     });
 
-    // Fill in real data
-    json.slots.forEach(slot => {
+    json.slots.forEach(function(slot) {
       if (trackerData[slot.country] !== undefined) {
-        const checkedMins = slot.lastChecked
+        var mins = slot.lastChecked
           ? Math.round((Date.now() - new Date(slot.lastChecked)) / 60000)
           : null;
         trackerData[slot.country] = {
-          available: slot.available,
-          date: slot.earliestDate ? formatTrackerDate(slot.earliestDate) : null,
-          slots: slot.slotsCount || (slot.available ? 1 : 0),
-          checked: checkedMins !== null ? checkedMins + ' min ago' : '—'
+          available:    slot.available,
+          date:         slot.earliestDate ? formatTrackerDate(slot.earliestDate) : null,
+          slots:        slot.slotsCount || (slot.available ? 1 : 0),
+          checked:      mins !== null ? mins + ' min ago' : '—'
         };
       }
     });
@@ -2143,19 +2111,7 @@ async function fetchRealSlots(city) {
     document.getElementById('last-checked').textContent = 'just now';
   } catch(e) {
     console.error('Failed to fetch real slots:', e);
-    // Fall back to simulated data
-    const availableCount = Math.floor(Math.random() * 3) + 4;
-    const shuffled = [...COUNTRIES].sort(() => Math.random() - 0.5);
-    shuffled.forEach((c, i) => {
-      trackerData[c.name] = {
-        available: i < availableCount,
-        date: i < availableCount ? getRandomDate() : null,
-        slots: i < availableCount ? Math.floor(Math.random() * 3) + 1 : 0,
-        checked: getRandomMinutes() + ' min ago'
-      };
-    });
-    renderTracker();
-    document.getElementById('last-checked').textContent = 'simulated data';
+    document.getElementById('last-checked').textContent = 'error loading data';
   }
 }
 
