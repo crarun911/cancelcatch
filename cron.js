@@ -126,7 +126,7 @@ async function notifySubscribers(country, city, slots) {
         .from('alerts_log')
         .select('id')
         .eq('subscriber_id', sub.id)
-        .eq('country', country)
+        .eq('centre', country)
         .eq('slot_date', slot.date)
         .gte('sent_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
         .limit(1);
@@ -155,7 +155,9 @@ async function notifySubscribers(country, city, slots) {
 async function logAlert(subscriberId, country, city, slot, channel) {
   await supabase.from('alerts_log').insert({
     subscriber_id: subscriberId,
-    country, city,
+    centre: country,
+    country: country,
+    city,
     slot_date: slot.date,
     slot_time: slot.time,
     channel,
