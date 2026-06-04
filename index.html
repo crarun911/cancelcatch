@@ -2085,25 +2085,31 @@ function initTrackerData() {
 async function fetchRealSlots(city) {
   try {
     document.getElementById('last-checked').textContent = 'loading...';
-    const res = await fetch('/api/slots?city=' + encodeURIComponent(city));
-    const json = await res.json();
-    if (!json.ok || !json.slots || !json.slots.length) return;
+    const SUPABASE_URL = 'https://pgujsxxccvxhrkhwyayz.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_KB90PtLtfwNz-MMnoJth3g_RHf-YskX';
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/visa_slots?city_from=eq.' + encodeURIComponent(city) + '&visa_type=eq.tourist&order=visa_destination.asc&select=*',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Accept': 'application/json' } }
+    );
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) return;
 
     COUNTRIES.forEach(c => {
-      trackerData[c.name] = { available: false, date: null, slots: 0, checked: '—' };
+      trackerData[c.name] = { available: false, waitlist: false, date: null, slots: 0, checked: '—' };
     });
 
-    json.slots.forEach(function(slot) {
-      if (trackerData[slot.country] !== undefined) {
-        var mins = slot.lastChecked
-          ? Math.round((Date.now() - new Date(slot.lastChecked)) / 60000)
+    data.forEach(function(row) {
+      var country = row.visa_destination;
+      if (trackerData[country] !== undefined) {
+        var mins = row.last_checked
+          ? Math.round((Date.now() - new Date(row.last_checked)) / 60000)
           : null;
-        trackerData[slot.country] = {
-          available:  slot.available,
-          waitlist:   slot.waitlist || slot.status === 'waitlist',
-          date:       slot.earliestDate ? formatTrackerDate(slot.earliestDate) : null,
-          slots:      slot.slotsCount || (slot.available ? 1 : 0),
-          checked:    mins !== null ? mins + ' min ago' : '—'
+        trackerData[country] = {
+          available: row.earliest_slot_date !== null,
+          waitlist:  row.status === 'waitlist',
+          date:      row.earliest_slot_date ? formatTrackerDate(row.earliest_slot_date) : null,
+          slots:     row.slots_count || (row.earliest_slot_date ? 1 : 0),
+          checked:   mins !== null ? mins + ' min ago' : '—'
         };
       }
     });
