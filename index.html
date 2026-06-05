@@ -2109,7 +2109,8 @@ async function fetchRealSlots(city) {
           waitlist:  row.status === 'waitlist',
           date:      row.earliest_slot_date ? formatTrackerDate(row.earliest_slot_date) : null,
           slots:     row.slots_count || (row.earliest_slot_date ? 1 : 0),
-          checked:   mins !== null ? mins + ' min ago' : '—'
+          checked:   mins !== null ? mins + ' min ago' : '—',
+          lastSeen:  row.last_seen_available || null
         };
       }
     });
@@ -2183,9 +2184,13 @@ function renderTracker() {
   }())
   unavailTbody.innerHTML = unavail.map(function(c) {
     var uidx = AVAIL_DATA.push({name:c.name, flag:c.flag, city:currentCity}) - 1;
+    var lastSeen = c.lastSeen ? formatLastSeen(c.lastSeen) : null;
+    var statusHtml = lastSeen
+      ? '<span class="slot-badge none">No availability</span> <span style="font-size:11px;color:var(--ink4)">Last seen ' + lastSeen + '</span>'
+      : '<span class="slot-badge none">No availability</span>';
     return '<tr>'
       + '<td><div class="country-cell"><span class="country-flag">' + c.flag + '</span><span class="country-name">' + c.name + '</span></div></td>'
-      + '<td><span class="slot-badge none">No availability</span></td>'
+      + '<td>' + statusHtml + '</td>'
       + '<td class="hide-mob"><span class="checked-time">' + (c && c.checked ? c.checked : '—') + '</span></td>'
       + '<td><button class="notify-btn" onclick="notifyMe(AVAIL_DATA[' + uidx + '].name)">🔔 Notify me</button></td>'
       + '</tr>';
@@ -2480,6 +2485,18 @@ function generateDemoAlerts(u) {
     });
   }
   return result;
+}
+
+function formatLastSeen(dateStr) {
+  if (!dateStr) return null;
+  var diff = Date.now() - new Date(dateStr).getTime();
+  var mins  = Math.floor(diff / 60000);
+  var hours = Math.floor(diff / 3600000);
+  var days  = Math.floor(diff / 86400000);
+  if (mins < 60)   return mins + ' min ago';
+  if (hours < 24)  return hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
+  if (days < 7)    return days + ' day' + (days > 1 ? 's' : '') + ' ago';
+  return Math.floor(days/7) + ' week' + (Math.floor(days/7) > 1 ? 's' : '') + ' ago';
 }
 </script>
 
