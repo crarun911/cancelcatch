@@ -2109,7 +2109,7 @@ async function fetchRealSlots(city) {
           waitlist:  row.status === 'waitlist',
           date:      row.earliest_slot_date ? formatTrackerDate(row.earliest_slot_date) : null,
           slots:     row.slots_count || (row.earliest_slot_date ? 1 : 0),
-          checked:   mins !== null ? mins + ' min ago' : '—',
+          checked:   mins !== null ? formatMinsAgo(mins) : '—',
           lastSeen:  row.last_seen_available || null
         };
       }
@@ -2175,7 +2175,7 @@ function renderTracker() {
         + '<td><div class="country-cell"><span class="country-flag">' + c.flag + '</span><span class="country-name">' + c.name + '</span></div></td>'
         + '<td class="hide-mob"><span class="slot-date">' + c.date + '</span></td>'
         + '<td><span class="slot-badge available" style="cursor:pointer" onclick="viewSlotsIdx(' + idx + ')">' + c.slots + ' slot' + (c.slots>1?'s':'') + ' available ↗</span></td>'
-        + '<td class="hide-mob"><span class="checked-time">' + c.checked + ' min ago</span></td>'
+        + '<td class="hide-mob"><span class="checked-time">' + c.checked + '</span></td>'
         + '<td>'
           + '<button class="notify-btn" style="border-color:var(--green);color:var(--green)" onclick="viewSlotsIdx(' + idx + ')">View slots</button>'
         + '</td>'
@@ -2288,7 +2288,7 @@ function updateDetailPage() {
           <div class="slot-day">${d.day}</div>
         </td>
         <td><span class="slot-badge available">${d.slots} slot${d.slots > 1 ? 's' : ''} available</span></td>
-        <td><span class="checked-time">${data.checked} min ago</span></td>
+        <td><span class="checked-time">${data.checked}</span></td>
         <td><a href="https://www.vfsglobal.com/en/individuals/index.html" target="_blank" class="book-vfs-btn">Book at VFS →</a></td>
       </tr>`).join('');
   } else {
@@ -2497,6 +2497,15 @@ function formatLastSeen(dateStr) {
   if (hours < 24)  return hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
   if (days < 7)    return days + ' day' + (days > 1 ? 's' : '') + ' ago';
   return Math.floor(days/7) + ' week' + (Math.floor(days/7) > 1 ? 's' : '') + ' ago';
+}
+
+function formatMinsAgo(mins) {
+  if (mins < 1)    return 'just now';
+  if (mins < 60)   return mins + ' min ago';
+  var hours = Math.floor(mins / 60);
+  if (hours < 24)  return hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
+  var days = Math.floor(hours / 24);
+  return days + ' day' + (days > 1 ? 's' : '') + ' ago';
 }
 </script>
 
